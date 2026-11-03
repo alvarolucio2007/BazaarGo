@@ -29,7 +29,11 @@ func NewPasetoAuthenticator(symmetricKey []byte) (*PasetoAuthenticator, error) {
 // CreateToken creates a secure PASETO V4 token for user authentication.
 //
 // Returns an error if the user_id cannot be set in the token payload.
+// Returns an error if UUID is somehow nil (00000000-0000-0000-0000-000000000000)
 func (p *PasetoAuthenticator) CreateToken(claims ports.Claims) (string, error) {
+	if a := uuid.Nil().Compare(claims.ID); a == 0 {
+		return "", fmt.Errorf("paseto: CreateToken: claims ID is nil")
+	}
 	token := paseto.NewToken()
 	token.SetIssuedAt(claims.IssuedAt)
 	token.SetExpiration(claims.ExpiresAt)
