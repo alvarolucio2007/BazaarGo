@@ -16,7 +16,7 @@ type PasetoAuthenticator struct {
 
 // NewPasetoAuthenticator creates a new [PasetoAuthenticator].
 //
-// Returns an error if for whatever reason, the symmetric key is invalid.
+// Returns an error if, for whatever reason, the symmetric key is invalid.
 func NewPasetoAuthenticator(symmetricKey []byte) (*PasetoAuthenticator, error) {
 	key, err := paseto.V4SymmetricKeyFromBytes(symmetricKey)
 	if err != nil {
