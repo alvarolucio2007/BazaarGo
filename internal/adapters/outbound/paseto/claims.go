@@ -9,7 +9,6 @@ import (
 )
 
 var (
-	ErrExpiredToken    = errors.New("paseto: token is expired")
 	ErrInvalidToken    = errors.New("paseto: token is invalid")
 	ErrInvalidUserID   = errors.New("paseto: userID must be greater than zero")
 	ErrInvalidDuration = errors.New("paseto: token duration must be positive")
