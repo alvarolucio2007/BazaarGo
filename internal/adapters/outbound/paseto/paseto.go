@@ -14,6 +14,17 @@ type PasetoAuthenticator struct {
 	key paseto.V4SymmetricKey
 }
 
+// NewPasetoAuthenticator creates a new [PasetoAuthenticator].
+//
+// Returns an error if for whatever reason, the symmetric key is invalid.
+func NewPasetoAuthenticator(symmetricKey []byte) (*PasetoAuthenticator, error) {
+	key, err := paseto.V4SymmetricKeyFromBytes(symmetricKey)
+	if err != nil {
+		return nil, fmt.Errorf("paseto: invalid symmetric key: %w", err)
+	}
+	return &PasetoAuthenticator{key: key}, nil
+}
+
 // CreateToken implements [ports.Authenticator].
 // CreateToken creates a secure PASETO V4 token for user authentication.
 //
