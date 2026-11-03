@@ -63,11 +63,11 @@ func TestPasetoAuthenticator_CreateToken(t *testing.T) {
 			}
 			verifiedClaims, err := p.VerifyToken(got)
 			require.NoError(t, err)
-			require.Equal(t, correctClaim.ID, verifiedClaims.ID)
-			require.Equal(t, correctClaim.Email, verifiedClaims.Email)
-			require.Equal(t, correctClaim.UserID, verifiedClaims.UserID)
-			require.WithinDuration(t, correctClaim.IssuedAt, verifiedClaims.IssuedAt, time.Second)
-			require.WithinDuration(t, correctClaim.ExpiresAt, verifiedClaims.ExpiresAt, time.Second)
+			require.Equal(t, tt.claims.ID, verifiedClaims.ID)
+			require.Equal(t, tt.claims.Email, verifiedClaims.Email)
+			require.Equal(t, tt.claims.UserID, verifiedClaims.UserID)
+			require.WithinDuration(t, tt.claims.IssuedAt, verifiedClaims.IssuedAt, time.Second)
+			require.WithinDuration(t, tt.claims.ExpiresAt, verifiedClaims.ExpiresAt, time.Second)
 		})
 	}
 }
