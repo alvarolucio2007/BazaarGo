@@ -1,0 +1,33 @@
+name: Test Go Code
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  audit:
+    name: Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ^1.27
+
+      - name: Verify Depedencies
+        run: go mod verify
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Golangci-lint
+        uses: golangci/golangci-lint-action@v9.3.0
+
+      - name: Run Tests
+        run: go test -race ./...
