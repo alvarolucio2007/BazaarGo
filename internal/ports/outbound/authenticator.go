@@ -6,8 +6,8 @@ import (
 )
 
 type Authenticator interface {
-	CreateToken(userID int64) (string, error)
-	VerifyToken(token string) (int64, error)
+	CreateToken(claims Claims) (string, error)
+	VerifyToken(token string) (Claims, error)
 }
 type Claims struct {
 	ID        uuid.UUID `json:"id"`
