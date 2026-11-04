@@ -4,8 +4,11 @@ import (
 	"context"
 	"time"
 
+	"github.com/alvarolucio2007/bazaargo/internal/ports"
 	"github.com/redis/go-redis/v9"
 )
+
+var _ (ports.HealthChecker) = (*HealthChecker)(nil)
 
 type HealthChecker struct {
 	rdb *redis.Client
@@ -16,6 +19,7 @@ func NewHealthChecker(rdb *redis.Client) *HealthChecker {
 	return &HealthChecker{rdb: rdb}
 }
 
+// Health implements [ports.HealthChecker].
 // Health checks whether the valkey cache is healthy and properly connected.
 //
 // Returns an error if the [redis.Client.Ping] health ping fails.
