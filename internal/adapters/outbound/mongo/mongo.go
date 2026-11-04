@@ -22,7 +22,7 @@ func NewConn(addr string) (*mongo.Client, error) {
 		return nil, err
 	}
 	if err := client.Ping(ctx, nil); err != nil {
-		client.Disconnect(ctx)
+		_ = client.Disconnect(ctx)
 		return nil, err
 	}
 	return client, nil
