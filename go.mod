@@ -5,10 +5,16 @@ go 1.27.3
 require (
 	aidanwoods.dev/go-paseto v1.6.0
 	github.com/go-openapi/testify v0.0.0-20251001202347-e909893202bd
+	github.com/jackc/pgx/v5 v5.12.0
+	golang.org/x/crypto v0.46.0
 )
 
 require (
 	aidanwoods.dev/go-result v0.3.1 // indirect
-	golang.org/x/crypto v0.46.0 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+	github.com/jackc/puddle/v2 v2.2.3 // indirect
+	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
+	golang.org/x/text v0.41.0 // indirect
 )
