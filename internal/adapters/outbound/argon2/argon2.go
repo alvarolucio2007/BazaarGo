@@ -15,6 +15,7 @@ import (
 const (
 	SaltLength = 16
 	format     = "$argon2id$v=19$m=%d,t=%d,p=%d$%s$%s"
+	KeyLength  = 32
 )
 
 var InvalidHashFormatError = errors.New("argon2: invalid hash format")
@@ -28,12 +29,18 @@ type Argon2Hasher struct {
 	keyLength   uint32
 }
 
+// NewArgon2Hasher builds a new argon2 hasher pointer.
+//
+// Standard OWASP recommended values are:
+//   - memory: 64 * 1024 (64 MB)
+//   - iterations: 3
+//   - parallelism: 2
 func NewArgon2Hasher(memory, iterations uint32, parallelism uint8) *Argon2Hasher {
 	return &Argon2Hasher{
-		memory:      memory,      //64*1024
-		iterations:  iterations,  // 3
-		parallelism: parallelism, // 2
-		keyLength:   32,
+		memory:      memory,
+		iterations:  iterations,
+		parallelism: parallelism,
+		keyLength:   KeyLength,
 	}
 }
 
