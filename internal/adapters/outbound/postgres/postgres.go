@@ -10,8 +10,7 @@ import (
 
 const PostgresQueryTimeout time.Duration = 5 * time.Second
 
-
-// NewConn creates a new postgres connection with [*sql.DB]
+// NewConn creates a new postgres connection with [*sql.DB].
 //
 // Returns an error if either the pgx driver fails or cannot connect to the database by the addr.
 // Returns an error if the [sql.DB] health ping fails.
