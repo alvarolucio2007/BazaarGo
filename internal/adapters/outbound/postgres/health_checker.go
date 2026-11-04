@@ -4,7 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"github.com/alvarolucio2007/bazaargo/internal/ports"
 )
+
+var _ (ports.HealthChecker) = (*HealthChecker)(nil)
 
 type HealthChecker struct {
 	db *sql.DB
@@ -15,6 +19,7 @@ func NewHealthChecker(db *sql.DB) *HealthChecker {
 	return &HealthChecker{db: db}
 }
 
+// Health implements [ports.HealthChecker].
 // Health checks whether the postgres DB is healthy and properly connected.
 //
 // Returns an error if the [sql.DB.PingContext] health ping fails.
