@@ -18,7 +18,7 @@ const (
 	KeyLength  = 32
 )
 
-var InvalidHashFormatError = errors.New("argon2: invalid hash format")
+var ErrInvalidHashFormat = errors.New("argon2: invalid hash format")
 
 var _ ports.Hasher = (*Argon2Hasher)(nil)
 
@@ -65,12 +65,12 @@ func (a *Argon2Hasher) Hash(password string) (string, error) {
 // Check implements [ports.Hasher].
 // It compares a plaintext password with a hashed password, returning true if they match.
 //
-// Returns [InvalidHashFormatError] if the hash format is malformed, or a base64 decoding
+// Returns [ErrInvalidHashFormat] if the hash format is malformed, or a base64 decoding
 // error if the salt or hash cannot be decoded.
 func (a *Argon2Hasher) Check(password string, hash string) (bool, error) {
 	parts := strings.Split(hash, "$")
 	if len(parts) != 6 {
-		return false, InvalidHashFormatError
+		return false, ErrInvalidHashFormat
 	}
 
 	var memory uint32
@@ -79,7 +79,7 @@ func (a *Argon2Hasher) Check(password string, hash string) (bool, error) {
 
 	_, err := fmt.Sscanf(parts[3], "m=%d,t=%d,p=%d", &memory, &iterations, &parallelism)
 	if err != nil {
-		return false, InvalidHashFormatError
+		return false, ErrInvalidHashFormat
 	}
 
 	salt, err := base64.RawStdEncoding.DecodeString(parts[4])
