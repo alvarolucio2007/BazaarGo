@@ -13,7 +13,7 @@ const MongoQueryTimeout time.Duration = 5 * time.Second
 // NewConn cretes a new MongoDB connection with [*mongo.Client].
 //
 // Returns an error if the mongo client cannot connect to the server.
-// Returns an error if the [mongo.Client.Ping] health ping fails.
+// Returns an error if the [mongo.Client.Ping] health ping fails, and disconnects the client.
 func NewConn(addr string) (*mongo.Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 7*time.Second)
 	defer cancel()
@@ -22,6 +22,7 @@ func NewConn(addr string) (*mongo.Client, error) {
 		return nil, err
 	}
 	if err := client.Ping(ctx, nil); err != nil {
+		client.Disconnect(ctx)
 		return nil, err
 	}
 	return client, nil
