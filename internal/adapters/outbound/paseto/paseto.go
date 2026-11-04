@@ -36,7 +36,7 @@ func (p *PasetoAuthenticator) CreateToken(claims ports.Claims) (string, error) {
 		return "", fmt.Errorf("paseto: CreateToken: claims ID is nil")
 	}
 	if claims.UserID <= 0 {
-		return "", ErrInvalidUserID
+		return "", ports.ErrInvalidUserID
 	}
 	token := paseto.NewToken()
 	token.SetIssuedAt(claims.IssuedAt)
@@ -59,7 +59,7 @@ func (p *PasetoAuthenticator) VerifyToken(tokenString string) (ports.Claims, err
 	parser := paseto.NewParser()
 	parsedToken, err := parser.ParseV4Local(p.key, tokenString, nil)
 	if err != nil {
-		return ports.Claims{}, ErrInvalidToken
+		return ports.Claims{}, ports.ErrInvalidToken
 	}
 	idStr, err := parsedToken.GetString("id")
 	if err != nil {
