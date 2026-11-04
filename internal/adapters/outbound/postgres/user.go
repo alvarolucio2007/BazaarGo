@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log/slog"
 
 	"github.com/alvarolucio2007/bazaargo/internal/domain"
 	ports "github.com/alvarolucio2007/bazaargo/internal/ports/outbound"
@@ -16,8 +15,7 @@ var (
 )
 
 type UserRepo struct {
-	db     *sql.DB
-	logger *slog.Logger
+	db *sql.DB
 }
 
 // Create implements [ports.UserRepository].
