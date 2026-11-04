@@ -6,7 +6,9 @@ package api
 import (
 	"bytes"
 	"compress/flate"
+	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -15,31 +17,56 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
+	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // CreateUserRequest defines model for CreateUserRequest.
 type CreateUserRequest struct {
+	Cpf      string              `json:"cpf"`
 	Email    openapi_types.Email `json:"email"`
 	Name     string              `json:"name"`
 	Password string              `json:"password"`
 }
 
+// CreateUserToken defines model for CreateUserToken.
+type CreateUserToken struct {
+	Email    openapi_types.Email `json:"email"`
+	Password string              `json:"password"`
+}
+
+// ErrorResponse defines model for ErrorResponse.
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
+// TokenResponse defines model for TokenResponse.
+type TokenResponse struct {
+	Token string `json:"token"`
+}
+
 // UserResponse defines model for UserResponse.
 type UserResponse struct {
-	Email *string `json:"email,omitempty"`
-	Id    *int64  `json:"id,omitempty"`
-	Name  *string `json:"name,omitempty"`
+	Cpf   string `json:"cpf"`
+	Email string `json:"email"`
+	Id    int64  `json:"id"`
+	Name  string `json:"name"`
 }
 
 // RegisterUserJSONRequestBody defines body for RegisterUser for application/json ContentType.
 type RegisterUserJSONRequestBody = CreateUserRequest
+
+// CreateTokenJSONRequestBody defines body for CreateToken for application/json ContentType.
+type CreateTokenJSONRequestBody = CreateUserToken
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
 	// (POST /auth/register)
 	RegisterUser(w http.ResponseWriter, r *http.Request)
+
+	// (POST /auth/token)
+	CreateToken(w http.ResponseWriter, r *http.Request)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -48,6 +75,11 @@ type Unimplemented struct{}
 
 // (POST /auth/register)
 func (_ Unimplemented) RegisterUser(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /auth/token)
+func (_ Unimplemented) CreateToken(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -65,6 +97,20 @@ func (siw *ServerInterfaceWrapper) RegisterUser(w http.ResponseWriter, r *http.R
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.RegisterUser(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateToken operation middleware
+func (siw *ServerInterfaceWrapper) CreateToken(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateToken(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -190,8 +236,250 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/auth/register", wrapper.RegisterUser)
 	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/auth/token", wrapper.CreateToken)
+	})
 
 	return r
+}
+
+type RegisterUserRequestObject struct {
+	Body *RegisterUserJSONRequestBody
+}
+
+type RegisterUserResponseObject interface {
+	VisitRegisterUserResponse(w http.ResponseWriter) error
+}
+
+type RegisterUser201JSONResponse UserResponse
+
+func (response RegisterUser201JSONResponse) VisitRegisterUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RegisterUser400JSONResponse ErrorResponse
+
+func (response RegisterUser400JSONResponse) VisitRegisterUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RegisterUser409JSONResponse ErrorResponse
+
+func (response RegisterUser409JSONResponse) VisitRegisterUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RegisterUser500JSONResponse ErrorResponse
+
+func (response RegisterUser500JSONResponse) VisitRegisterUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateTokenRequestObject struct {
+	Body *CreateTokenJSONRequestBody
+}
+
+type CreateTokenResponseObject interface {
+	VisitCreateTokenResponse(w http.ResponseWriter) error
+}
+
+type CreateToken200JSONResponse TokenResponse
+
+func (response CreateToken200JSONResponse) VisitCreateTokenResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateToken400JSONResponse ErrorResponse
+
+func (response CreateToken400JSONResponse) VisitCreateTokenResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateToken401JSONResponse ErrorResponse
+
+func (response CreateToken401JSONResponse) VisitCreateTokenResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateToken500JSONResponse ErrorResponse
+
+func (response CreateToken500JSONResponse) VisitCreateTokenResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+// StrictServerInterface represents all server handlers.
+type StrictServerInterface interface {
+
+	// (POST /auth/register)
+	RegisterUser(ctx context.Context, request RegisterUserRequestObject) (RegisterUserResponseObject, error)
+
+	// (POST /auth/token)
+	CreateToken(ctx context.Context, request CreateTokenRequestObject) (CreateTokenResponseObject, error)
+}
+
+type StrictHandlerFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request, request any) (any, error)
+type StrictMiddlewareFunc func(f StrictHandlerFunc, operationID string) StrictHandlerFunc
+
+type StrictHTTPServerOptions struct {
+	RequestErrorHandlerFunc  func(w http.ResponseWriter, r *http.Request, err error)
+	ResponseErrorHandlerFunc func(w http.ResponseWriter, r *http.Request, err error)
+}
+
+func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareFunc) ServerInterface {
+	return &strictHandler{ssi: ssi, middlewares: middlewares, options: StrictHTTPServerOptions{
+		RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		},
+		ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		},
+	}}
+}
+
+func NewStrictHandlerWithOptions(ssi StrictServerInterface, middlewares []StrictMiddlewareFunc, options StrictHTTPServerOptions) ServerInterface {
+	if options.RequestErrorHandlerFunc == nil {
+		options.RequestErrorHandlerFunc = func(w http.ResponseWriter, r *http.Request, err error) {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
+	}
+	if options.ResponseErrorHandlerFunc == nil {
+		options.ResponseErrorHandlerFunc = func(w http.ResponseWriter, r *http.Request, err error) {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+	return &strictHandler{ssi: ssi, middlewares: middlewares, options: options}
+}
+
+type strictHandler struct {
+	ssi         StrictServerInterface
+	middlewares []StrictMiddlewareFunc
+	options     StrictHTTPServerOptions
+}
+
+// RegisterUser operation middleware
+func (sh *strictHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
+	var request RegisterUserRequestObject
+
+	var body RegisterUserJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RegisterUser(ctx, request.(RegisterUserRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RegisterUser")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RegisterUserResponseObject); ok {
+		if err := validResponse.VisitRegisterUserResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateToken operation middleware
+func (sh *strictHandler) CreateToken(w http.ResponseWriter, r *http.Request) {
+	var request CreateTokenRequestObject
+
+	var body CreateTokenJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateToken(ctx, request.(CreateTokenRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateToken")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateTokenResponseObject); ok {
+		if err := validResponse.VisitCreateTokenResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
 }
 
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
@@ -199,12 +487,15 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"rFLBjtpADP0V5PYYEWirHuZWeqi4VUg9VT1MEwNGZDzYzq5YlH9fzQwKiiJx2pv1/Gy/Z/sGDXeRAwZT",
-	"cDfQ5oidz+FPQW/4R1F2eOlRLYFROKIYYaZg5+mcgj1L5w3cHanArhHBgZpQOMBQQfAdJuYsEb3qK0s7",
-	"aTOCs05DBYKXngRbcH9L22ocO9b9Gwv5/wkbS5OKFY0cFJ94mSmkqTYK9v3bQxgFwwPKE4/DTEuCKOw5",
-	"k8nOKbfxb97LL178+L2FCl5QlDiAg/VytVyl9hwx+Ejg4GuGkl07ZvG17+1YCx5IDSWb43KwZNEbcdi2",
-	"4GB3Z6RVQNkkqm24vSZuw8Ew5DIf45maXFiflMPjN1L0WXAPDj7Vj+epS1br+dsM06OZ9JiBcoms/8tq",
-	"/WECJmfOs1vURiha2WfKL4rKNuWHYXgfAA==",
+	"zFRNb9NAEP0r1sDRqhMoCHwjFUKROKBAT4jDYk+SLfHMdnZSaCv/d7S7+ahrtwIRop7izNebefN2bqHi",
+	"xjEhqYfyFny1xMbEzzNBo3juUWZ4uUavweiEHYpajCGVm4efxvz6iLTQJZTjcQ6Npbt/9dohlOBVLC2g",
+	"zQEbY1chb87SGIVyYxkIJdNgiOw5nPH+J0vdKbMzdnp406vb5iB4ubaCNZRfE0i+a+JOlTDft106f7/A",
+	"SgP6npov/AOpT8xfjHjISXojDDX/XoRlht4xeRxoPbgHOL8PFcOG6kdKHq6vW8Yer5/ChuonRT5U/h8l",
+	"2fPY7mIs6evT/RotKS5QHpHqvbFsDZvQpK4tdH/QkGlpzrGm1VXwTcyNMfKBs3efppDDFYq3TFDC+GR0",
+	"MgpdsEMyzkIJL6MpaEGXkZnCrHVZCC6sV4wbdpwedeDPqGWa1lDCbBMReIbUPXqdcH0d+WVSpJhmnFvZ",
+	"KiYWF55pfz/C13PBOZTwrNgfmCJ5fdE/LW2XKJU1RkNac+z/xWh8sAY6GorYNfpKrNPEZ/Bnqcs60Ho6",
+	"Gh0Mu/v+BsAnps52vATst8fDPmOar2x6aK+OOfSUFIXMKvuMcoWSxYQQ2OYb5e4Ox7Bs07bSPf7fqk0o",
+	"f6TZw1HYvasDFMaAbPt8n4Jwx8fDPqcgEhZ7g/UTEm/b/h4A",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
