@@ -1,4 +1,4 @@
-.PHONY: migrateup migratedown migration test
+.PHONY: migrateup migratedown migration test generate
 MIGRATIONS_PATH= ./database/migrations/
 DB_URL=postgres://admin:root@localhost/scholarly?sslmode=disable
 migration:
@@ -11,3 +11,5 @@ test:
 	go test -v -cover -short ./...
 run:
 	go run ./...
+generate:
+	oapi-codegen -config oapi-codegen.yaml api/openapi.yaml
