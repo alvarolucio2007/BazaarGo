@@ -10,7 +10,7 @@ import (
 const CacheQueryTimeout = 500 * time.Millisecond
 const CacheExpTime = time.Hour
 
-// NewConn creates a new Valkey connection
+// NewConn creates a new Valkey connection.
 //
 // Returns an error if the [redis.Client.Ping] health ping fails.
 func NewConn(address, password string, db int) (*redis.Client, error) {
