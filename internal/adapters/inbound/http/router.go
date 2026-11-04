@@ -59,6 +59,7 @@ func (h *ServerHandler) Run(mux http.Handler, addr string) error {
 	}
 	err = <-shutdown
 	if err != nil {
+		_ = srv.Close()
 		return err
 	}
 	return nil
