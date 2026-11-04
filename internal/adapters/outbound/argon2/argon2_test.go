@@ -30,4 +30,9 @@ func TestPassword(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, hashedPassword2)
 	require.NotEqual(t, hashedPassword, hashedPassword2)
+
+	wrongPassword := "THIS IS A WRONG PASSWORD"
+	isSame, err = hasher.Check(wrongPassword, hashedPassword)
+	require.NoError(t, err)
+	require.False(t, isSame)
 }
