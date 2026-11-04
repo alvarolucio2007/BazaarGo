@@ -4,4 +4,5 @@ generate:
   chi-server: true
   models: true
   embedded-spec: true
+  strict-server: true
 output: internal/adapters/inbound/http/api.gen.go
