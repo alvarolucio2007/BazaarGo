@@ -12,11 +12,13 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-var _ (ports.ProductRepository) = (*ProductRepo)(nil)
+var _ ports.ProductRepository = (*ProductRepo)(nil)
 
+// ProductRepo implements the outbound port for MongoDB product operations.
 type ProductRepo struct {
 	collection *mongo.Collection
 }
+
 type productModel struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty"`
 	Name        string             `bson:"name"`
@@ -50,6 +52,7 @@ func toModel(p domain.Product) (*productModel, error) {
 		UpdatedAt:   p.UpdatedAt,
 	}, nil
 }
+
 func toDomain(m *productModel) domain.Product {
 	return domain.Product{
 		ID:          m.ID.Hex(),
@@ -65,28 +68,40 @@ func toDomain(m *productModel) domain.Product {
 }
 
 // Create implements [ports.ProductRepository].
+// It inserts a new product document into the MongoDB collection and
+//
+// updates the input domain object with the generated ID and timestamps.
 func (p *ProductRepo) Create(ctx context.Context, product *domain.Product) error {
 	timeNow := time.Now()
 	product.CreatedAt = timeNow
+
 	model, err := toModel(*product)
 	if err != nil {
 		return err
 	}
+
 	ctx, cancel := context.WithTimeout(ctx, MongoQueryTimeout)
 	defer cancel()
+
 	result, err := p.collection.InsertOne(ctx, model)
 	if err != nil {
 		return err
 	}
+
 	product.ID = result.InsertedID.(primitive.ObjectID).Hex()
 	return nil
 }
 
 // ReadByName implements [ports.ProductRepository].
+// It fetches a product by its name.
+//
+// Returns [domain.ErrNotFound] if the product does not exist.
 func (p *ProductRepo) ReadByName(ctx context.Context, name string) (domain.Product, error) {
 	var model productModel
+
 	ctx, cancel := context.WithTimeout(ctx, MongoQueryTimeout)
 	defer cancel()
+
 	err := p.collection.FindOne(ctx, bson.M{"name": name}).Decode(&model)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -94,15 +109,20 @@ func (p *ProductRepo) ReadByName(ctx context.Context, name string) (domain.Produ
 		}
 		return domain.Product{}, err
 	}
+
 	return toDomain(&model), nil
 }
 
 // Update implements [ports.ProductRepository].
+// It updates an existing product in the database based on its ID.
+//
+// Returns [domain.ErrNotFound] if the product ID does not exist.
 func (p *ProductRepo) Update(ctx context.Context, product domain.Product) error {
 	objID, err := primitive.ObjectIDFromHex(product.ID)
 	if err != nil {
 		return domain.ErrNotFound
 	}
+
 	update := bson.M{
 		"$set": bson.M{
 			"name":        product.Name,
@@ -114,28 +134,43 @@ func (p *ProductRepo) Update(ctx context.Context, product domain.Product) error 
 			"updated_at":  time.Now(),
 		},
 	}
+
 	ctx, cancel := context.WithTimeout(ctx, MongoQueryTimeout)
 	defer cancel()
+
 	result, err := p.collection.UpdateOne(ctx, bson.M{"_id": objID}, update)
 	if err != nil {
 		return err
 	}
+
 	if result.MatchedCount == 0 {
 		return domain.ErrNotFound
 	}
+
 	return nil
 }
 
 // Delete implements [ports.ProductRepository].
-func (p *ProductRepo) Delete(ctx context.Context, productID primitive.ObjectID) error {
+// It removes a product from the database by its ID.
+//
+// Returns [domain.ErrNotFound] if the product ID does not exist.
+func (p *ProductRepo) Delete(ctx context.Context, productID string) error {
+	objID, err := primitive.ObjectIDFromHex(productID) // <-- Corrigido: Recebe string e converte aqui
+	if err != nil {
+		return domain.ErrNotFound
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, MongoQueryTimeout)
 	defer cancel()
-	result, err := p.collection.DeleteOne(ctx, bson.M{"_id": productID})
+
+	result, err := p.collection.DeleteOne(ctx, bson.M{"_id": objID})
 	if err != nil {
 		return err
 	}
+
 	if result.DeletedCount == 0 {
 		return domain.ErrNotFound
 	}
+
 	return nil
 }
