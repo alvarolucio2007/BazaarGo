@@ -15,6 +15,7 @@ require (
 	github.com/oapi-codegen/runtime v1.8.0
 	github.com/redis/go-redis/v9 v9.23.0
 	github.com/swaggo/http-swagger v1.3.4
+	go.mongodb.org/mongo-driver v1.17.10
 	go.mongodb.org/mongo-driver/v2 v2.9.3
 	golang.org/x/crypto v0.54.0
 )
