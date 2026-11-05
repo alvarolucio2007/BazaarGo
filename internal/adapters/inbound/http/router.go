@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"os"
@@ -13,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/httprate"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func (h *ServerHandler) Mount() http.Handler {
@@ -32,6 +34,21 @@ func (h *ServerHandler) Mount() http.Handler {
 	r.Use(httprate.LimitBy(100, time.Minute, func(r *http.Request) (string, error) {
 		return httprate.CanonicalizeIP(middleware.GetClientIP(r.Context())), nil
 	}))
+	swagger, err := GetSwagger()
+	if err != nil {
+		panic(err)
+	}
+
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+	))
+
+	r.Get("/swagger/doc.json", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(swagger); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
 	strictHandler := NewStrictHandler(h, nil)
 	HandlerFromMux(strictHandler, r)
 	return r
