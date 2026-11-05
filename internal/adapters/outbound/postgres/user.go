@@ -18,6 +18,11 @@ type UserRepo struct {
 	db *sql.DB
 }
 
+// NewUserRepo creates a new Postgres user repository.
+func NewUserRepo(db *sql.DB) *UserRepo {
+	return &UserRepo{db: db}
+}
+
 // Create implements [ports.UserRepository].
 //
 // Create inserts an user into the DB.
