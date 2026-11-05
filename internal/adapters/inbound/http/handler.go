@@ -16,6 +16,10 @@ type ServerHandler struct {
 	logger      *slog.Logger
 }
 
+func NewServerHandler(userService *service.UserService, logger *slog.Logger) *ServerHandler {
+	return &ServerHandler{userService: userService, logger: logger}
+}
+
 // CreateToken implements [StrictServerInterface].
 func (s *ServerHandler) CreateToken(ctx context.Context, request CreateTokenRequestObject) (CreateTokenResponseObject, error) {
 	token, err := s.userService.VerifyUser(ctx, string(request.Body.Email), request.Body.Password)
