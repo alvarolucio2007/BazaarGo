@@ -1,6 +1,6 @@
 .PHONY: migrateup migratedown migration test generate
 MIGRATIONS_PATH= ./database/migrations/
-DB_URL=postgres://admin:root@localhost/scholarly?sslmode=disable
+DB_URL = postgresql://admin:root@localhost:5432/bazaargo?sslmode=disable
 migration:
 	migrate create -seq -ext sql -dir $(MIGRATIONS_PATH) $(filter-out $@,$(MAKECMDGOALS))
 migrateup:
