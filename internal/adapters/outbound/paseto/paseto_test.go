@@ -17,7 +17,7 @@ func decodeB64Key(t *testing.T, key string) []byte {
 	return decodedKey
 }
 func newTestClaims(t *testing.T, email string, userID int64, duration time.Duration) ports.Claims {
-	claim, err := paseto.NewClaims(email, userID, duration)
+	claim, err := ports.NewClaims(email, userID, duration)
 	require.NoError(t, err)
 	return claim
 }
