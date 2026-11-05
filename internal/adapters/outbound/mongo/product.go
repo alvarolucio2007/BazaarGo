@@ -113,25 +113,28 @@ func (p *ProductRepo) ReadByID(ctx context.Context, productID string) (domain.Pr
 	return toDomain(&model), nil
 }
 
-// ReadByName implements [ports.ProductRepository].
-// It fetches a product by its name.
+// ListByName implements [ports.ProductRepository].
 //
-// Returns [domain.ErrNotFound] if the product does not exist.
-func (p *ProductRepo) ReadByName(ctx context.Context, name string) (domain.Product, error) {
-	var model productModel
-
+// ListByName retrieves a list of products from the MongoDB collection based on a filter.
+func (p *ProductRepo) ListByName(ctx context.Context, name string) ([]domain.Product, error) {
+	filterName := primitive.Regex{Pattern: name, Options: "i"}
+	mongoFilter := bson.M{"name": filterName}
 	ctx, cancel := context.WithTimeout(ctx, MongoQueryTimeout)
 	defer cancel()
-
-	err := p.collection.FindOne(ctx, bson.M{"name": name}).Decode(&model)
+	cursor, err := p.collection.Find(ctx, mongoFilter)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return domain.Product{}, domain.ErrNotFound
-		}
-		return domain.Product{}, err
+		return nil, err
 	}
-
-	return toDomain(&model), nil
+	defer cursor.Close(ctx)
+	var models []productModel
+	if err := cursor.All(ctx, &models); err != nil {
+		return nil, err
+	}
+	products := make([]domain.Product, 0, len(models))
+	for _, model := range models {
+		products = append(products, toDomain(&model))
+	}
+	return products, nil
 }
 
 // Update implements [ports.ProductRepository].
