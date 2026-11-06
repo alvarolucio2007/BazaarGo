@@ -117,6 +117,9 @@ func (s *ProductService) Update(ctx context.Context, payload UpdateProductPayloa
 		CategoryID:  payload.CategoryID,
 		Specs:       payload.Specs,
 	}
+	if err := product.Validate(); err != nil {
+		return err
+	}
 
 	if err := s.repo.Update(ctx, product); err != nil {
 		return err
