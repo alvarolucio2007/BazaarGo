@@ -92,6 +92,11 @@ func (s *ServerHandler) RegisterUser(ctx context.Context, request RegisterUserRe
 }
 
 // CreateProduct implements [StrictServerInterface].
+// It handles the creation of a new product by mapping the request payload to the
+// application's core service.
+//
+// Returns a 400 Bad Request if the product data fails domain validation.
+// Returns a 500 Internal Server Error on unexpected failures.
 func (s *ServerHandler) CreateProduct(ctx context.Context, request CreateProductRequestObject) (CreateProductResponseObject, error) {
 	payload := service.CreateProductPayload{
 		Name:        request.Body.Name,
@@ -101,16 +106,19 @@ func (s *ServerHandler) CreateProduct(ctx context.Context, request CreateProduct
 		CategoryID:  request.Body.CategoryId,
 		Specs:       request.Body.Specs,
 	}
+
 	product, err := s.productService.Create(ctx, payload)
 	if err != nil {
 		if errors.Is(err, domain.ErrInvalidProduct) {
 			return CreateProduct400JSONResponse{
-				Error: "Invalid product. Please check the credentials.",
+				Error: "Invalid product. Please check the product data.",
 			}, nil
 		}
+
 		s.logger.ErrorContext(ctx, "unexpected error creating product", "error", err)
 		return nil, err
 	}
+
 	return CreateProduct201JSONResponse{
 		Name:        product.Name,
 		Description: product.Description,
@@ -122,8 +130,13 @@ func (s *ServerHandler) CreateProduct(ctx context.Context, request CreateProduct
 }
 
 // GetProductByID implements [StrictServerInterface].
+// It fetches a specific product by its ID using the application's core service.
+//
+// Returns a 404 Not Found if the product does not exist.
+// Returns a 500 Internal Server Error on unexpected failures.
 func (s *ServerHandler) GetProductByID(ctx context.Context, request GetProductByIDRequestObject) (GetProductByIDResponseObject, error) {
 	id := request.Id
+
 	product, err := s.productService.ReadByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
@@ -131,9 +144,11 @@ func (s *ServerHandler) GetProductByID(ctx context.Context, request GetProductBy
 				Error: "Product not found",
 			}, nil
 		}
-		s.logger.ErrorContext(ctx, "unexpected error creating product", "error", err)
+
+		s.logger.ErrorContext(ctx, "unexpected error fetching product", "error", err)
 		return nil, err
 	}
+
 	return GetProductByID200JSONResponse{
 		Name:        product.Name,
 		Description: product.Description,
@@ -145,6 +160,11 @@ func (s *ServerHandler) GetProductByID(ctx context.Context, request GetProductBy
 }
 
 // UpdateProduct implements [StrictServerInterface].
+// It updates an existing product's data based on the provided ID and payload.
+//
+// Returns a 400 Bad Request if the updated product data fails domain validation.
+// Returns a 404 Not Found if the product does not exist.
+// Returns a 500 Internal Server Error on unexpected failures.
 func (s *ServerHandler) UpdateProduct(ctx context.Context, request UpdateProductRequestObject) (UpdateProductResponseObject, error) {
 	payload := service.UpdateProductPayload{
 		ID:          request.Id,
@@ -155,19 +175,45 @@ func (s *ServerHandler) UpdateProduct(ctx context.Context, request UpdateProduct
 		CategoryID:  request.Body.CategoryId,
 		Specs:       request.Body.Specs,
 	}
+
 	if err := s.productService.Update(ctx, payload); err != nil {
 		if errors.Is(err, domain.ErrInvalidProduct) {
 			return UpdateProduct400JSONResponse{
-				Error: "Invalid product. Please check the credentials.",
+				Error: "Invalid product. Please check the product data.",
 			}, nil
 		}
+
 		if errors.Is(err, domain.ErrNotFound) {
 			return UpdateProduct404JSONResponse{
 				Error: "Not Found",
 			}, nil
 		}
+
 		s.logger.ErrorContext(ctx, "unexpected error updating product", "error", err)
 		return nil, err
 	}
+
 	return UpdateProduct204Response{}, nil
+}
+
+// DeleteProductsId implements [StrictServerInterface].
+// It removes a product from the catalog by its ID.
+//
+// Returns a 404 Not Found if the product does not exist.
+// Returns a 500 Internal Server Error on unexpected failures.
+func (s *ServerHandler) DeleteProductsId(ctx context.Context, request DeleteProductsIdRequestObject) (DeleteProductsIdResponseObject, error) {
+	id := request.Id
+
+	if err := s.productService.Delete(ctx, id); err != nil {
+		if errors.Is(err, domain.ErrNotFound) {
+			return DeleteProductsId404JSONResponse{
+				Error: "Not Found",
+			}, nil
+		}
+
+		s.logger.ErrorContext(ctx, "unexpected error deleting product", "error", err)
+		return nil, err
+	}
+
+	return DeleteProductsId204Response{}, nil
 }
