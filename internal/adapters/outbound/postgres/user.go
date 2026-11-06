@@ -34,7 +34,11 @@ func NewUserRepo(db *sql.DB) *UserRepo {
 //
 // and the same user is seeded with the corresponding [domain.User.ID] and [domain.User.CreatedAt].
 //
-// Can return specific errors (WIP)
+// Can return specific [domain.ErrEmailAlreadyExists].
+//
+// Can return specific [domain.ErrCPFAlreadyExists].
+//
+// Can return other DB errors.
 func (u *UserRepo) Create(ctx context.Context, user *domain.User) error {
 	query := `INSERT INTO users (name,cpf,email,password_hash) VALUES ($1,$2,$3,$4) RETURNING id,created_at`
 	ctx, cancel := context.WithTimeout(ctx, PostgresQueryTimeout)
@@ -137,6 +141,10 @@ func (u *UserRepo) Update(ctx context.Context, user domain.User) error {
 	defer cancel()
 	res, err := u.db.ExecContext(ctx, query, user.Name, user.CPF, user.Email, user.PasswordHash, user.ID)
 	if err != nil {
+		translated := translateError(err)
+		if !errors.Is(err, translated) {
+			return translated
+		}
 		return fmt.Errorf("postgres: update users: %w", err)
 	}
 	count, err := res.RowsAffected()
@@ -162,6 +170,10 @@ func (u *UserRepo) Delete(ctx context.Context, userID int64) error {
 	defer cancel()
 	res, err := u.db.ExecContext(ctx, query, userID)
 	if err != nil {
+		translated := translateError(err)
+		if !errors.Is(err, translated) {
+			return translated
+		}
 		return fmt.Errorf("postgres: delete user: %w", err)
 	}
 	count, err := res.RowsAffected()

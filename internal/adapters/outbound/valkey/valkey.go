@@ -2,6 +2,7 @@ package valkey
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -9,6 +10,8 @@ import (
 
 const CacheQueryTimeout = 500 * time.Millisecond
 const CacheExpTime = time.Hour
+
+var ErrCacheMiss = errors.New("cache miss")
 
 // NewConn creates a new Valkey connection.
 //
