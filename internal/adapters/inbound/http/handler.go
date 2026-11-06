@@ -121,6 +121,29 @@ func (s *ServerHandler) CreateProduct(ctx context.Context, request CreateProduct
 	}, nil
 }
 
+// GetProductByID implements [StrictServerInterface].
+func (s *ServerHandler) GetProductByID(ctx context.Context, request GetProductByIDRequestObject) (GetProductByIDResponseObject, error) {
+	id := request.Id
+	product, err := s.productService.ReadByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, domain.ErrNotFound) {
+			return GetProductByID404JSONResponse{
+				Error: "Product not found",
+			}, nil
+		}
+		s.logger.ErrorContext(ctx, "unexpected error creating product", "error", err)
+		return nil, err
+	}
+	return GetProductByID200JSONResponse{
+		Name:        product.Name,
+		Description: product.Description,
+		Price:       float32(product.Price),
+		Stock:       product.Stock,
+		CategoryId:  product.CategoryID,
+		Specs:       product.Specs,
+	}, nil
+}
+
 // UpdateProduct implements [StrictServerInterface].
 func (s *ServerHandler) UpdateProduct(ctx context.Context, request UpdateProductRequestObject) (UpdateProductResponseObject, error) {
 	payload := service.UpdateProductPayload{
