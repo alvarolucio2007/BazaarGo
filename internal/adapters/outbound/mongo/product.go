@@ -8,7 +8,6 @@ import (
 
 	"github.com/alvarolucio2007/bazaargo/internal/domain"
 	ports "github.com/alvarolucio2007/bazaargo/internal/ports/outbound"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -22,22 +21,22 @@ type ProductRepo struct {
 }
 
 type productModel struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty"`
-	Name        string             `bson:"name"`
-	Description string             `bson:"description"`
-	Price       float64            `bson:"price"`
-	Stock       int                `bson:"stock"`
-	CategoryID  string             `bson:"category_id"`
-	Specs       map[string]any     `bson:"specs"`
-	CreatedAt   time.Time          `bson:"created_at"`
-	UpdatedAt   time.Time          `bson:"updated_at"`
+	ID          bson.ObjectID  `bson:"_id,omitempty"`
+	Name        string         `bson:"name"`
+	Description string         `bson:"description"`
+	Price       float64        `bson:"price"`
+	Stock       int            `bson:"stock"`
+	CategoryID  string         `bson:"category_id"`
+	Specs       map[string]any `bson:"specs"`
+	CreatedAt   time.Time      `bson:"created_at"`
+	UpdatedAt   time.Time      `bson:"updated_at"`
 }
 
 func toModel(p domain.Product) (*productModel, error) {
-	var objID primitive.ObjectID
+	var objID bson.ObjectID
 	var err error
 	if p.ID != "" {
-		objID, err = primitive.ObjectIDFromHex(p.ID)
+		objID, err = bson.ObjectIDFromHex(p.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -89,7 +88,7 @@ func (p *ProductRepo) Create(ctx context.Context, product *domain.Product) error
 		return err
 	}
 
-	product.ID = result.InsertedID.(primitive.ObjectID).Hex()
+	product.ID = result.InsertedID.(bson.ObjectID).Hex()
 	return nil
 }
 
@@ -118,7 +117,7 @@ func (p *ProductRepo) ReadByID(ctx context.Context, productID string) (domain.Pr
 //
 // ListByName retrieves a list of products from the MongoDB collection based on a filter.
 func (p *ProductRepo) ListByName(ctx context.Context, name string) ([]domain.Product, error) {
-	filterName := primitive.Regex{Pattern: name, Options: "i"}
+	filterName := bson.Regex{Pattern: name, Options: "i"}
 	mongoFilter := bson.M{"name": filterName}
 	ctx, cancel := context.WithTimeout(ctx, MongoQueryTimeout)
 	defer cancel()
@@ -147,7 +146,7 @@ func (p *ProductRepo) ListByName(ctx context.Context, name string) ([]domain.Pro
 //
 // Returns [domain.ErrNotFound] if the product ID does not exist.
 func (p *ProductRepo) Update(ctx context.Context, product domain.Product) error {
-	objID, err := primitive.ObjectIDFromHex(product.ID)
+	objID, err := bson.ObjectIDFromHex(product.ID)
 	if err != nil {
 		return domain.ErrNotFound
 	}
@@ -184,7 +183,7 @@ func (p *ProductRepo) Update(ctx context.Context, product domain.Product) error 
 //
 // Returns [domain.ErrNotFound] if the product ID does not exist.
 func (p *ProductRepo) Delete(ctx context.Context, productID string) error {
-	objID, err := primitive.ObjectIDFromHex(productID) // <-- Corrigido: Recebe string e converte aqui
+	objID, err := bson.ObjectIDFromHex(productID) // <-- Corrigido: Recebe string e converte aqui
 	if err != nil {
 		return domain.ErrNotFound
 	}
