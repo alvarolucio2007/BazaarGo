@@ -65,6 +65,16 @@ type TokenResponse struct {
 	Token string `json:"token"`
 }
 
+// UpdateProductRequest defines model for UpdateProductRequest.
+type UpdateProductRequest struct {
+	CategoryId  string                 `json:"category_id"`
+	Description string                 `json:"description"`
+	Name        string                 `json:"name"`
+	Price       float32                `json:"price"`
+	Specs       map[string]interface{} `json:"specs"`
+	Stock       int                    `json:"stock"`
+}
+
 // UserResponse defines model for UserResponse.
 type UserResponse struct {
 	Cpf   string `json:"cpf"`
@@ -82,6 +92,9 @@ type CreateTokenJSONRequestBody = CreateUserToken
 // CreateProductJSONRequestBody defines body for CreateProduct for application/json ContentType.
 type CreateProductJSONRequestBody = CreateProductRequest
 
+// UpdateProductJSONRequestBody defines body for UpdateProduct for application/json ContentType.
+type UpdateProductJSONRequestBody = UpdateProductRequest
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
@@ -93,6 +106,9 @@ type ServerInterface interface {
 
 	// (POST /products)
 	CreateProduct(w http.ResponseWriter, r *http.Request)
+
+	// (PUT /products/{id})
+	UpdateProduct(w http.ResponseWriter, r *http.Request, id string)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -111,6 +127,11 @@ func (_ Unimplemented) CreateToken(w http.ResponseWriter, r *http.Request) {
 
 // (POST /products)
 func (_ Unimplemented) CreateProduct(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PUT /products/{id})
+func (_ Unimplemented) UpdateProduct(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -156,6 +177,32 @@ func (siw *ServerInterfaceWrapper) CreateProduct(w http.ResponseWriter, r *http.
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateProduct(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateProduct operation middleware
+func (siw *ServerInterfaceWrapper) UpdateProduct(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateProduct(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -286,6 +333,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/products", wrapper.CreateProduct)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/products/{id}", wrapper.UpdateProduct)
 	})
 
 	return r
@@ -455,23 +505,68 @@ func (response CreateProduct400JSONResponse) VisitCreateProductResponse(w http.R
 	return err
 }
 
-type CreateProduct409JSONResponse ErrorResponse
+type CreateProduct500JSONResponse ErrorResponse
 
-func (response CreateProduct409JSONResponse) VisitCreateProductResponse(w http.ResponseWriter) error {
+func (response CreateProduct500JSONResponse) VisitCreateProductResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response); err != nil {
 		return err
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(409)
+	w.WriteHeader(500)
 	_, err := buf.WriteTo(w)
 	return err
 }
 
-type CreateProduct500JSONResponse ErrorResponse
+type UpdateProductRequestObject struct {
+	Id   string `json:"id"`
+	Body *UpdateProductJSONRequestBody
+}
 
-func (response CreateProduct500JSONResponse) VisitCreateProductResponse(w http.ResponseWriter) error {
+type UpdateProductResponseObject interface {
+	VisitUpdateProductResponse(w http.ResponseWriter) error
+}
+
+type UpdateProduct204Response struct {
+}
+
+func (response UpdateProduct204Response) VisitUpdateProductResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type UpdateProduct400JSONResponse ErrorResponse
+
+func (response UpdateProduct400JSONResponse) VisitUpdateProductResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateProduct404JSONResponse ErrorResponse
+
+func (response UpdateProduct404JSONResponse) VisitUpdateProductResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateProduct500JSONResponse ErrorResponse
+
+func (response UpdateProduct500JSONResponse) VisitUpdateProductResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response); err != nil {
@@ -494,6 +589,9 @@ type StrictServerInterface interface {
 
 	// (POST /products)
 	CreateProduct(ctx context.Context, request CreateProductRequestObject) (CreateProductResponseObject, error)
+
+	// (PUT /products/{id})
+	UpdateProduct(ctx context.Context, request UpdateProductRequestObject) (UpdateProductResponseObject, error)
 }
 
 type StrictHandlerFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request, request any) (any, error)
@@ -628,22 +726,57 @@ func (sh *strictHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// UpdateProduct operation middleware
+func (sh *strictHandler) UpdateProduct(w http.ResponseWriter, r *http.Request, id string) {
+	var request UpdateProductRequestObject
+
+	request.Id = id
+
+	var body UpdateProductJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateProduct(ctx, request.(UpdateProductRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateProduct")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateProductResponseObject); ok {
+		if err := validResponse.VisitUpdateProductResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
 // Stored as a slice of fixed-width chunks rather than one concatenated
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"7Fdfb9M+FP0qkX+/x2hpYSDIG5sQmsRDVdgTQsiLb1tvie1d3wy6Kd8d2U66pnELE11VCZ7W+P479/jc",
-	"m+yBFboyWoEiy/IHZosFVNz/PEfgBBPUoi5oCrc1WHLnBrUBJAneq+AEc43Lb1K4R1oaYDmzhFLNWZMy",
-	"AbZAaUhqFbUrXkHUYFAW6xZVV1eAzmINFL42F0K6xLycrGEirCHtovTVNRTko0gXN2v5pCKYu4RNyhBu",
-	"a4kgWP4lAOrj7sB0SdJe1x2gr5GigcNLC7idQDNzfyr+4yOoOS1YPh6nrJJq/XHADlRcli5uprHixPL2",
-	"JH0Kw9za7xpFL83qsIfhzSBvnLUOxFoW199uaj7rG1BDYp7Q4j47GbQQA/8eUeMUrNHKQgS6M0c43yzl",
-	"3WL5V1O3rcK/sds1dl5R28mjTnC7rye4xfKHgd56N3820QOL7OtaKnp9ytIBoVsvdaMtz11Lt4PalR42",
-	"6iKlmmmfU1LpbGf8nnP8oJN3kwuWsjtA6zXGxiejk5FDoQ0obiTL2Ut/5EaJFp6ZjNe0yBDm0hL4ATE6",
-	"7ETHH3e3fiFYzqath+OZBfRg6UyLpedXKwLlw7gxpSx8YHZttXp8hblf/yPMWM7+yx7fcVmw2my4mZs+",
-	"UU7P/iBcs8f/YjTeG4Cehnzt3sx6jSUBpXC0no5Ge6vdX1+R4mdcJCteXO23h6t9rtWslGHQXh2y6QtF",
-	"gIqXySfAO8DEBzjHJm2Vu1occdmG2wqvs+dWbajyW5rdH4X9vRqh0Dsk3fgeg3DHh6t9qZxINMp7EMcl",
-	"XhM+J+yvpNt+djyreDf+oTjw1t38sIow2bokxV+4e49Uwk3zcwA=",
+	"7FdRTxs5EP4rK989rtjkLndq962gtkKqKgTlCaHKrCeJYdc241naEO1/r2xnQzbrUBAhzQNPSTyemW8+",
+	"fx5P5qzQldEKFFmWz5ktplBx//UIgROcoBZ1QadwW4Mlt25QG0CS4HcVnGCicfZdCveTZgZYziyhVBPW",
+	"pEyALVAaklpF7YpXEDUYlMWqRdXVFaCzWAOFz82FkC4wL09WMBHWkLZe+uoaCvJepIublXhSEUxcwCZl",
+	"CLe1RBAsvwiAurhbMG2QtFN1C+gykjRweG4BNxNoxu6j4j+/gJrQlOXDYcoqqVZ/9tiBisvS+Y01VpxY",
+	"vlhJn8Mwt/aHRtEJs1zsYHjXixtnrQWxEsXV9zg13/QNqD4xzyhxm5X0SoiB/4io8RSs0cpCBLozRzhf",
+	"T+W3xeIvb92mDG/X7rFr5xW1mTxqBff48YRtsfjnRry1xheeUWiKG/X9sq7Ys8hub5CK/h+xtFfwRtLX",
+	"mPC1LehwUNvU/UKdp1Rj7WNKKp3tkN9zjp918uHkmKXsDtB6DbDhweBg4FBoA4obyXL2r19y7YimnpmM",
+	"1zTNECbSEvgmY3RQn+OPu1M5Fixnp4sdjmcW0IOlQy1mnl+tCJR348aUsvCO2bXV6mEMcN/+RhiznP2V",
+	"PcwJWbDarP+6NV2inN78Qjhmj/+fwXBrADoa8rk7d8prLAkohaN1NBhsLXf3CYgkP+QiWfLicr/fXe4j",
+	"rcalDBftv10WfawIUPEyOQO8A0y8g9vYpAvlLptvXLbhtMJI8NqqDVmepNntUdh9myIU+g1Je333QbjD",
+	"3eU+V04kGuU9iP0Srwmvvf2ddBdTwauKd23y2HHXXR9OI0wutiTFfvTe/VNRNpei8VKqI0rqzJf+8Ude",
+	"AQFall/MmVT+7w1N2yEkDwNJVwLpSkHr08zl66gzOhc/SZ0j97HWCnwwkZzVBVg7rsty9udb4Wh3ub9q",
+	"Sj7pWu1TH2yaXwMA",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
