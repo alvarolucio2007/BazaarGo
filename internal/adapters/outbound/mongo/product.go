@@ -71,7 +71,6 @@ func toDomain(m *productModel) domain.Product {
 
 // Create implements [ports.ProductRepository].
 // It inserts a new product document into the MongoDB collection and
-//
 // updates the input domain object with the generated ID and timestamps.
 func (p *ProductRepo) Create(ctx context.Context, product *domain.Product) error {
 	timeNow := time.Now()
