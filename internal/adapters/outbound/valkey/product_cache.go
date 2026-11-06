@@ -38,8 +38,8 @@ func (p *ProductCache) Create(ctx context.Context, item domain.Product) error {
 // Read implements [ports.Cache].
 // It fetches and unmarshals a [domain.Product] from Redis based on its ID.
 //
-// Returns [ports.ErrCacheMiss] (or your domain equivalent) if the product is not found in the cache.
-// Returns an error if the Redis operation fails or if the stored data is malformed.
+// Returns [ErrCacheMiss] if the product is not found in the cache.
+// Returns an error if either the Redis operation fails or if the stored data is malformed.
 func (p *ProductCache) Read(ctx context.Context, itemID string) (domain.Product, error) {
 	cacheKey := fmt.Sprintf("product:%s", itemID)
 
