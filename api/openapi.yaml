@@ -93,8 +93,38 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '409':
-          description: Unauthorized
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/products/{id}':
+    put:
+      operationId: UpdateProduct
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductRequest'
+      responses:
+        '204':
+          description: Updated Sucessfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
           content:
             application/json:
               schema:
@@ -105,6 +135,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+      deprecated: false
+
 
 
 components:
@@ -151,6 +183,16 @@ components:
       properties:
         token: {type: string}
     CreateProductRequest:
+      type: object
+      required: [name,description,price,stock,category_id,specs]
+      properties:
+        name: {type: string}
+        description: {type: string}
+        price: {type: number}
+        stock: {type: integer}
+        category_id: {type: string}
+        specs: {type: object, additionalProperties: true}
+    UpdateProductRequest:
       type: object
       required: [name,description,price,stock,category_id,specs]
       properties:
