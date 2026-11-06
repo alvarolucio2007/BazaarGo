@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/alvarolucio2007/bazaargo/internal/domain"
@@ -17,6 +18,7 @@ var _ ports.ProductRepository = (*ProductRepo)(nil)
 // ProductRepo implements the outbound port for MongoDB product operations.
 type ProductRepo struct {
 	collection *mongo.Collection
+	logger     *slog.Logger
 }
 
 type productModel struct {
@@ -125,7 +127,11 @@ func (p *ProductRepo) ListByName(ctx context.Context, name string) ([]domain.Pro
 	if err != nil {
 		return nil, err
 	}
-	defer cursor.Close(ctx)
+	defer func() {
+		if err := cursor.Close(ctx); err != nil {
+			p.logger.ErrorContext(ctx, "error while closing cursor", "error", err)
+		}
+	}()
 	var models []productModel
 	if err := cursor.All(ctx, &models); err != nil {
 		return nil, err
