@@ -152,7 +152,7 @@ components:
         token: {type: string}
     CreateProductRequest:
       type: object
-      required: [name,descriptinon,price,stock,category_id,specs]
+      required: [name,description,price,stock,category_id,specs]
       properties:
         name: {type: string}
         description: {type: string}
@@ -162,7 +162,7 @@ components:
         specs: {type: object, additionalProperties: true}
     ProductResponse:
       type: object
-      required: [name,descriptinon,price,stock,category_id,specs]
+      required: [name,description,price,stock,category_id,specs]
       properties:
         name: {type: string}
         description: {type: string}
