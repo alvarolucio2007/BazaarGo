@@ -50,6 +50,9 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
+// ListProductResponse defines model for ListProductResponse.
+type ListProductResponse = []interface{}
+
 // ProductResponse defines model for ProductResponse.
 type ProductResponse struct {
 	CategoryId  string                 `json:"category_id"`
@@ -115,6 +118,9 @@ type ServerInterface interface {
 
 	// (PUT /products/{id})
 	UpdateProduct(w http.ResponseWriter, r *http.Request, id string)
+
+	// (GET /products/{name})
+	GetProductsName(w http.ResponseWriter, r *http.Request, name string)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -148,6 +154,11 @@ func (_ Unimplemented) GetProductByID(w http.ResponseWriter, r *http.Request, id
 
 // (PUT /products/{id})
 func (_ Unimplemented) UpdateProduct(w http.ResponseWriter, r *http.Request, id string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /products/{name})
+func (_ Unimplemented) GetProductsName(w http.ResponseWriter, r *http.Request, name string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -271,6 +282,32 @@ func (siw *ServerInterfaceWrapper) UpdateProduct(w http.ResponseWriter, r *http.
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateProduct(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetProductsName operation middleware
+func (siw *ServerInterfaceWrapper) GetProductsName(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "name" -------------
+	var name string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "name", chi.URLParam(r, "name"), &name, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "name", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetProductsName(w, r, name)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -410,6 +447,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Put(options.BaseURL+"/products/{id}", wrapper.UpdateProduct)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/products/{name}", wrapper.GetProductsName)
 	})
 
 	return r
@@ -774,6 +814,42 @@ func (response UpdateProduct500JSONResponse) VisitUpdateProductResponse(w http.R
 	return err
 }
 
+type GetProductsNameRequestObject struct {
+	Name string `json:"name"`
+}
+
+type GetProductsNameResponseObject interface {
+	VisitGetProductsNameResponse(w http.ResponseWriter) error
+}
+
+type GetProductsName200JSONResponse ListProductResponse
+
+func (response GetProductsName200JSONResponse) VisitGetProductsNameResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetProductsName500JSONResponse ErrorResponse
+
+func (response GetProductsName500JSONResponse) VisitGetProductsNameResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 
@@ -794,6 +870,9 @@ type StrictServerInterface interface {
 
 	// (PUT /products/{id})
 	UpdateProduct(ctx context.Context, request UpdateProductRequestObject) (UpdateProductResponseObject, error)
+
+	// (GET /products/{name})
+	GetProductsName(ctx context.Context, request GetProductsNameRequestObject) (GetProductsNameResponseObject, error)
 }
 
 type StrictHandlerFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request, request any) (any, error)
@@ -1013,25 +1092,52 @@ func (sh *strictHandler) UpdateProduct(w http.ResponseWriter, r *http.Request, i
 	}
 }
 
+// GetProductsName operation middleware
+func (sh *strictHandler) GetProductsName(w http.ResponseWriter, r *http.Request, name string) {
+	var request GetProductsNameRequestObject
+
+	request.Name = name
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetProductsName(ctx, request.(GetProductsNameRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetProductsName")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetProductsNameResponseObject); ok {
+		if err := validResponse.VisitGetProductsNameResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
 // Stored as a slice of fixed-width chunks rather than one concatenated
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
