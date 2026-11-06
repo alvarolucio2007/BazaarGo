@@ -24,7 +24,7 @@ import (
 // CreateProductRequest defines model for CreateProductRequest.
 type CreateProductRequest struct {
 	CategoryId  string                 `json:"category_id"`
-	Description *string                `json:"description,omitempty"`
+	Description string                 `json:"description"`
 	Name        string                 `json:"name"`
 	Price       float32                `json:"price"`
 	Specs       map[string]interface{} `json:"specs"`
@@ -53,7 +53,7 @@ type ErrorResponse struct {
 // ProductResponse defines model for ProductResponse.
 type ProductResponse struct {
 	CategoryId  string                 `json:"category_id"`
-	Description *string                `json:"description,omitempty"`
+	Description string                 `json:"description"`
 	Name        string                 `json:"name"`
 	Price       float32                `json:"price"`
 	Specs       map[string]interface{} `json:"specs"`
@@ -633,17 +633,17 @@ func (sh *strictHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"7Fffb9M+EP9Xovt+H6O1hYEgb2xCaBIP02BPCCEvvrbeGts7XwfblP8d2U66pHEHE11VCZ7W+H597uPP",
-	"XbJ7KE1ljUbNDop7cOUcKxF+HhMKxlMyclnyGV4v0bE/t2QsEisMXqVgnBm6/aakf+Rbi1CAY1J6BnUO",
-	"El1JyrIyOmnXosKkwZIquxa9rC6QvMVZLENtIaXyicXitIOJaYl5G2UuLrHkEMWmvOrkU5px5hPWORBe",
-	"LxWhhOJLBNTBrY2GFk2bJe+13SL6mqgaSTx3SJsZtFP/pxI/PqKe8RyKySSHSunu44AerIRa+LipoUow",
-	"FM1J/hSKhXPfDclemtVhD8ObQd40bS2IThbf3+PUfDZXqIfEPKHFbXYyaCEF/j2RoTN01miHCejenOB8",
-	"vVRwS+Vfjd2mCv/m7tG5C5LazB63inv8fqJbKn+c6I2X82cjPbCovrCV5teHkA8Y3Xira20F7hq+PdS2",
-	"9LBRH6n01IScihfediTuhKAPJnt3egI53CC5IDKYHIwPxh6FsaiFVVDAy3DkZ4nngZmRWPJ8RDhTjjFM",
-	"iDVxKXr+hFfViYQCzhoPzzNE9Oj4yMjbwK/RjDqECWsXqgyBo0tn9MNLzP/6n3AKBfw3enjLjaLVjYar",
-	"ue4T5QUdDuI1B/wvxpOtAehpKNTuDW3QWBZRSk/r4Xi8tdr9/ZUofiRktuLF1367u9rHRk8XKg7aq102",
-	"faIZSYtF9gnpBikLAd6xzhvlrhZHWrbxtuL77LlVG6v8lma3R2F/ryYoDA5ZO777INzJ7mqfay8SQ+oO",
-	"5X6J18bvCfcr6TbfHc8q3rV/KXa8dde/rBJMNi5Z+Rfu3j2VcF3/HAA=",
+	"7Fdfb9M+FP0qkX+/x2hpYSDIG5sQmsRDVdgTQsiLb1tvie1d3wy6Kd8d2U66pnELE11VCZ7W+P479/jc",
+	"m+yBFboyWoEiy/IHZosFVNz/PEfgBBPUoi5oCrc1WHLnBrUBJAneq+AEc43Lb1K4R1oaYDmzhFLNWZMy",
+	"AbZAaUhqFbUrXkHUYFAW6xZVV1eAzmINFL42F0K6xLycrGEirCHtovTVNRTko0gXN2v5pCKYu4RNyhBu",
+	"a4kgWP4lAOrj7sB0SdJe1x2gr5GigcNLC7idQDNzfyr+4yOoOS1YPh6nrJJq/XHADlRcli5uprHixPL2",
+	"JH0Kw9za7xpFL83qsIfhzSBvnLUOxFoW199uaj7rG1BDYp7Q4j47GbQQA/8eUeMUrNHKQgS6M0c43yzl",
+	"3WL5V1O3rcK/sds1dl5R28mjTnC7rye4xfKHgd56N3820QOL7OtaKnp9ytIBoVsvdaMtz11Lt4PalR42",
+	"6iKlmmmfU1LpbGf8nnP8oJN3kwuWsjtA6zXGxiejk5FDoQ0obiTL2Ut/5EaJFp6ZjNe0yBDm0hL4ATE6",
+	"7ETHH3e3fiFYzqath+OZBfRg6UyLpedXKwLlw7gxpSx8YHZttXp8hblf/yPMWM7+yx7fcVmw2my4mZs+",
+	"UU7P/iBcs8f/YjTeG4Cehnzt3sx6jSUBpXC0no5Ge6vdX1+R4mdcJCteXO23h6t9rtWslGHQXh2y6QtF",
+	"gIqXySfAO8DEBzjHJm2Vu1occdmG2wqvs+dWbajyW5rdH4X9vRqh0Dsk3fgeg3DHh6t9qZxINMp7EMcl",
+	"XhM+J+yvpNt+djyreDf+oTjw1t38sIow2bokxV+4e49Uwk3zcwA=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
