@@ -202,7 +202,27 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       deprecated: false
-
+  /products/{name}:
+    get:
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListProductResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
   schemas:
@@ -277,3 +297,6 @@ components:
         stock: {type: integer}
         category_id: {type: string}
         specs: {type: object, additionalProperties: true}
+    ListProductResponse:
+      type: array
+      items: {$ref:"#/components/schemas/ProductResponse"}
