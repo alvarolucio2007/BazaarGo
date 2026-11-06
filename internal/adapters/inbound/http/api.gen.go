@@ -21,6 +21,16 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// CreateProductRequest defines model for CreateProductRequest.
+type CreateProductRequest struct {
+	CategoryId  string                 `json:"category_id"`
+	Description *string                `json:"description,omitempty"`
+	Name        string                 `json:"name"`
+	Price       float32                `json:"price"`
+	Specs       map[string]interface{} `json:"specs"`
+	Stock       int                    `json:"stock"`
+}
+
 // CreateUserRequest defines model for CreateUserRequest.
 type CreateUserRequest struct {
 	Cpf      string              `json:"cpf"`
@@ -38,6 +48,16 @@ type CreateUserToken struct {
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	Error string `json:"error"`
+}
+
+// ProductResponse defines model for ProductResponse.
+type ProductResponse struct {
+	CategoryId  string                 `json:"category_id"`
+	Description *string                `json:"description,omitempty"`
+	Name        string                 `json:"name"`
+	Price       float32                `json:"price"`
+	Specs       map[string]interface{} `json:"specs"`
+	Stock       int                    `json:"stock"`
 }
 
 // TokenResponse defines model for TokenResponse.
@@ -59,6 +79,9 @@ type RegisterUserJSONRequestBody = CreateUserRequest
 // CreateTokenJSONRequestBody defines body for CreateToken for application/json ContentType.
 type CreateTokenJSONRequestBody = CreateUserToken
 
+// CreateProductJSONRequestBody defines body for CreateProduct for application/json ContentType.
+type CreateProductJSONRequestBody = CreateProductRequest
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
@@ -67,6 +90,9 @@ type ServerInterface interface {
 
 	// (POST /auth/token)
 	CreateToken(w http.ResponseWriter, r *http.Request)
+
+	// (POST /products)
+	CreateProduct(w http.ResponseWriter, r *http.Request)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -80,6 +106,11 @@ func (_ Unimplemented) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 // (POST /auth/token)
 func (_ Unimplemented) CreateToken(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /products)
+func (_ Unimplemented) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -111,6 +142,20 @@ func (siw *ServerInterfaceWrapper) CreateToken(w http.ResponseWriter, r *http.Re
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateToken(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateProduct operation middleware
+func (siw *ServerInterfaceWrapper) CreateProduct(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateProduct(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -238,6 +283,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/auth/token", wrapper.CreateToken)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/products", wrapper.CreateProduct)
 	})
 
 	return r
@@ -371,6 +419,70 @@ func (response CreateToken500JSONResponse) VisitCreateTokenResponse(w http.Respo
 	return err
 }
 
+type CreateProductRequestObject struct {
+	Body *CreateProductJSONRequestBody
+}
+
+type CreateProductResponseObject interface {
+	VisitCreateProductResponse(w http.ResponseWriter) error
+}
+
+type CreateProduct201JSONResponse ProductResponse
+
+func (response CreateProduct201JSONResponse) VisitCreateProductResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateProduct400JSONResponse ErrorResponse
+
+func (response CreateProduct400JSONResponse) VisitCreateProductResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateProduct409JSONResponse ErrorResponse
+
+func (response CreateProduct409JSONResponse) VisitCreateProductResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateProduct500JSONResponse ErrorResponse
+
+func (response CreateProduct500JSONResponse) VisitCreateProductResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 
@@ -379,6 +491,9 @@ type StrictServerInterface interface {
 
 	// (POST /auth/token)
 	CreateToken(ctx context.Context, request CreateTokenRequestObject) (CreateTokenResponseObject, error)
+
+	// (POST /products)
+	CreateProduct(ctx context.Context, request CreateProductRequestObject) (CreateProductResponseObject, error)
 }
 
 type StrictHandlerFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request, request any) (any, error)
@@ -482,20 +597,53 @@ func (sh *strictHandler) CreateToken(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// CreateProduct operation middleware
+func (sh *strictHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
+	var request CreateProductRequestObject
+
+	var body CreateProductJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateProduct(ctx, request.(CreateProductRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateProduct")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateProductResponseObject); ok {
+		if err := validResponse.VisitCreateProductResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
 // Stored as a slice of fixed-width chunks rather than one concatenated
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"zFRNb9NAEP0r1sDRqhMoCHwjFUKROKBAT4jDYk+SLfHMdnZSaCv/d7S7+ahrtwIRop7izNebefN2bqHi",
-	"xjEhqYfyFny1xMbEzzNBo3juUWZ4uUavweiEHYpajCGVm4efxvz6iLTQJZTjcQ6Npbt/9dohlOBVLC2g",
-	"zQEbY1chb87SGIVyYxkIJdNgiOw5nPH+J0vdKbMzdnp406vb5iB4ubaCNZRfE0i+a+JOlTDft106f7/A",
-	"SgP6npov/AOpT8xfjHjISXojDDX/XoRlht4xeRxoPbgHOL8PFcOG6kdKHq6vW8Yer5/ChuonRT5U/h8l",
-	"2fPY7mIs6evT/RotKS5QHpHqvbFsDZvQpK4tdH/QkGlpzrGm1VXwTcyNMfKBs3efppDDFYq3TFDC+GR0",
-	"MgpdsEMyzkIJL6MpaEGXkZnCrHVZCC6sV4wbdpwedeDPqGWa1lDCbBMReIbUPXqdcH0d+WVSpJhmnFvZ",
-	"KiYWF55pfz/C13PBOZTwrNgfmCJ5fdE/LW2XKJU1RkNac+z/xWh8sAY6GorYNfpKrNPEZ/Bnqcs60Ho6",
-	"Gh0Mu/v+BsAnps52vATst8fDPmOar2x6aK+OOfSUFIXMKvuMcoWSxYQQ2OYb5e4Ox7Bs07bSPf7fqk0o",
-	"f6TZw1HYvasDFMaAbPt8n4Jwx8fDPqcgEhZ7g/UTEm/b/h4A",
+	"7Fffb9M+EP9Xovt+H6O1hYEgb2xCaBIP02BPCCEvvrbeGts7XwfblP8d2U66pHEHE11VCZ7W+H597uPP",
+	"XbJ7KE1ljUbNDop7cOUcKxF+HhMKxlMyclnyGV4v0bE/t2QsEisMXqVgnBm6/aakf+Rbi1CAY1J6BnUO",
+	"El1JyrIyOmnXosKkwZIquxa9rC6QvMVZLENtIaXyicXitIOJaYl5G2UuLrHkEMWmvOrkU5px5hPWORBe",
+	"LxWhhOJLBNTBrY2GFk2bJe+13SL6mqgaSTx3SJsZtFP/pxI/PqKe8RyKySSHSunu44AerIRa+LipoUow",
+	"FM1J/hSKhXPfDclemtVhD8ObQd40bS2IThbf3+PUfDZXqIfEPKHFbXYyaCEF/j2RoTN01miHCejenOB8",
+	"vVRwS+Vfjd2mCv/m7tG5C5LazB63inv8fqJbKn+c6I2X82cjPbCovrCV5teHkA8Y3Xira20F7hq+PdS2",
+	"9LBRH6n01IScihfediTuhKAPJnt3egI53CC5IDKYHIwPxh6FsaiFVVDAy3DkZ4nngZmRWPJ8RDhTjjFM",
+	"iDVxKXr+hFfViYQCzhoPzzNE9Oj4yMjbwK/RjDqECWsXqgyBo0tn9MNLzP/6n3AKBfw3enjLjaLVjYar",
+	"ue4T5QUdDuI1B/wvxpOtAehpKNTuDW3QWBZRSk/r4Xi8tdr9/ZUofiRktuLF1367u9rHRk8XKg7aq102",
+	"faIZSYtF9gnpBikLAd6xzhvlrhZHWrbxtuL77LlVG6v8lma3R2F/ryYoDA5ZO777INzJ7mqfay8SQ+oO",
+	"5X6J18bvCfcr6TbfHc8q3rV/KXa8dde/rBJMNi5Z+Rfu3j2VcF3/HAA=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
