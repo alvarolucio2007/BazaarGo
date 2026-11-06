@@ -41,7 +41,7 @@ func (s *ServerHandler) CreateToken(ctx context.Context, request CreateTokenRequ
 		}
 
 		s.logger.Error("unexpected error creating token", "error", err)
-		return nil, err
+		return CreateToken500JSONResponse{Error: "internal server error"}, nil
 	}
 
 	return CreateToken200JSONResponse{Token: token}, nil
