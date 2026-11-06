@@ -36,6 +36,9 @@ type CreateProductPayload struct {
 // It first persists the product in the database and then attempts to store it in the cache.
 //
 // Returns the created [domain.Product] populated with the generated ID.
+//
+// Returns [domain.ErrInvalidProduct] if either name is empty, price is <=0, stock is <0 or category id is empty.
+//
 // Cache insertion failures are logged but do not prevent the product creation.
 func (s *ProductService) Create(ctx context.Context, payload CreateProductPayload) (domain.Product, error) {
 	product := domain.Product{
@@ -46,7 +49,9 @@ func (s *ProductService) Create(ctx context.Context, payload CreateProductPayloa
 		CategoryID:  payload.CategoryID,
 		Specs:       payload.Specs,
 	}
-
+	if err := product.Validate(); err != nil {
+		return domain.Product{}, err
+	}
 	if err := s.repo.Create(ctx, &product); err != nil {
 		return domain.Product{}, err
 	}
