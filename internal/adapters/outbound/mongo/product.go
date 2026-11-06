@@ -99,10 +99,14 @@ func (p *ProductRepo) Create(ctx context.Context, product *domain.Product) error
 func (p *ProductRepo) ReadByID(ctx context.Context, productID string) (domain.Product, error) {
 	var model productModel
 
+	objID, err := bson.ObjectIDFromHex(productID)
+	if err != nil {
+		return domain.Product{}, err
+	}
 	ctx, cancel := context.WithTimeout(ctx, MongoQueryTimeout)
 	defer cancel()
 
-	err := p.collection.FindOne(ctx, bson.M{"_id": productID}).Decode(&model)
+	err = p.collection.FindOne(ctx, bson.M{"_id": objID}).Decode(&model)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return domain.Product{}, domain.ErrNotFound
