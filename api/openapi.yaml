@@ -202,7 +202,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       deprecated: false
-  /products/{name}:
+  /products/search/{name}:
     get:
       parameters:
         - name: name
