@@ -15,8 +15,9 @@ var _ StrictServerInterface = (*ServerHandler)(nil)
 // It implements the generated [StrictServerInterface] and maps HTTP requests
 // to the application's core services.
 type ServerHandler struct {
-	userService *service.UserService
-	logger      *slog.Logger
+	userService    *service.UserService
+	productService *service.ProductService
+	logger         *slog.Logger
 }
 
 // NewServerHandler creates a new instance of ServerHandler with its required dependencies.
@@ -88,4 +89,62 @@ func (s *ServerHandler) RegisterUser(ctx context.Context, request RegisterUserRe
 		Id:    user.ID,
 		Name:  user.Name,
 	}, nil
+}
+
+// CreateProduct implements [StrictServerInterface].
+func (s *ServerHandler) CreateProduct(ctx context.Context, request CreateProductRequestObject) (CreateProductResponseObject, error) {
+	payload := service.CreateProductPayload{
+		Name:        request.Body.Name,
+		Description: request.Body.Description,
+		Price:       float64(request.Body.Price),
+		Stock:       request.Body.Stock,
+		CategoryID:  request.Body.CategoryId,
+		Specs:       request.Body.Specs,
+	}
+	product, err := s.productService.Create(ctx, payload)
+	if err != nil {
+		if errors.Is(err, domain.ErrInvalidProduct) {
+			return CreateProduct400JSONResponse{
+				Error: "Invalid product. Please check the credentials.",
+			}, nil
+		}
+		s.logger.ErrorContext(ctx, "unexpected error creating product", "error", err)
+		return nil, err
+	}
+	return CreateProduct201JSONResponse{
+		Name:        product.Name,
+		Description: product.Description,
+		Price:       float32(product.Price),
+		Stock:       product.Stock,
+		CategoryId:  product.CategoryID,
+		Specs:       product.Specs,
+	}, nil
+}
+
+// UpdateProduct implements [StrictServerInterface].
+func (s *ServerHandler) UpdateProduct(ctx context.Context, request UpdateProductRequestObject) (UpdateProductResponseObject, error) {
+	payload := service.UpdateProductPayload{
+		ID:          request.Id,
+		Name:        request.Body.Name,
+		Description: request.Body.Description,
+		Price:       float64(request.Body.Price),
+		Stock:       request.Body.Stock,
+		CategoryID:  request.Body.CategoryId,
+		Specs:       request.Body.Specs,
+	}
+	if err := s.productService.Update(ctx, payload); err != nil {
+		if errors.Is(err, domain.ErrInvalidProduct) {
+			return UpdateProduct400JSONResponse{
+				Error: "Invalid product. Please check the credentials.",
+			}, nil
+		}
+		if errors.Is(err, domain.ErrNotFound) {
+			return UpdateProduct404JSONResponse{
+				Error: "Not Found",
+			}, nil
+		}
+		s.logger.ErrorContext(ctx, "unexpected error updating product", "error", err)
+		return nil, err
+	}
+	return UpdateProduct204Response{}, nil
 }
