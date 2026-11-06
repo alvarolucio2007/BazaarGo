@@ -159,6 +159,32 @@ func (s *ServerHandler) GetProductByID(ctx context.Context, request GetProductBy
 	}, nil
 }
 
+// GetProductsName implements [StrictServerInterface].
+// It retrieves a list of products matching the provided name query parameter.
+//
+// Returns a 200 OK response with the list of products (empty if none match).
+// Returns a 500 Internal Server Error on unexpected failures.
+func (s *ServerHandler) GetProductsName(ctx context.Context, request GetProductsNameRequestObject) (GetProductsNameResponseObject, error) {
+	name := request.Name
+	products, err := s.productService.ListByName(ctx, name)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "unexpected error fetching products by name", "error", err)
+		return nil, err
+	}
+	response := make(ListProductResponse, 0, len(products))
+	for _, p := range products {
+		response = append(response, ProductResponse{
+			Name:        p.Name,
+			Description: p.Description,
+			Price:       float32(p.Price),
+			Stock:       p.Stock,
+			CategoryId:  p.CategoryID,
+			Specs:       p.Specs,
+		})
+	}
+	return GetProductsName200JSONResponse{response}, nil
+}
+
 // UpdateProduct implements [StrictServerInterface].
 // It updates an existing product's data based on the provided ID and payload.
 //
