@@ -2,10 +2,13 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log/slog"
+	"net/http"
 
 	"github.com/alvarolucio2007/bazaargo/internal/domain"
+	ports "github.com/alvarolucio2007/bazaargo/internal/ports/outbound"
 	"github.com/alvarolucio2007/bazaargo/internal/service"
 )
 
@@ -17,12 +20,13 @@ var _ StrictServerInterface = (*ServerHandler)(nil)
 type ServerHandler struct {
 	userService    *service.UserService
 	productService *service.ProductService
+	authenticator  ports.Authenticator
 	logger         *slog.Logger
 }
 
 // NewServerHandler creates a new instance of ServerHandler with its required dependencies.
-func NewServerHandler(userService *service.UserService, productService *service.ProductService, logger *slog.Logger) *ServerHandler {
-	return &ServerHandler{userService: userService, productService: productService, logger: logger}
+func NewServerHandler(userService *service.UserService, productService *service.ProductService, authenticator ports.Authenticator, logger *slog.Logger) *ServerHandler {
+	return &ServerHandler{userService: userService, productService: productService, authenticator: authenticator, logger: logger}
 }
 
 // CreateToken implements [StrictServerInterface].
@@ -264,4 +268,17 @@ func (s *ServerHandler) DeleteProductsId(ctx context.Context, request DeleteProd
 	}
 
 	return DeleteProductsId204Response{}, nil
+}
+
+func StrictErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
+	w.Header().Set("Content-Type", "application/json")
+
+	if errors.Is(err, domain.ErrUnauthorized) {
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Unauthorized"})
+		return
+	}
+
+	w.WriteHeader(http.StatusInternalServerError)
+	json.NewEncoder(w).Encode(map[string]string{"error": "Internal Server Error"})
 }
