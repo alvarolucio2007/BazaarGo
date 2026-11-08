@@ -21,8 +21,8 @@ type ServerHandler struct {
 }
 
 // NewServerHandler creates a new instance of ServerHandler with its required dependencies.
-func NewServerHandler(userService *service.UserService, logger *slog.Logger) *ServerHandler {
-	return &ServerHandler{userService: userService, logger: logger}
+func NewServerHandler(userService *service.UserService, productService *service.ProductService, logger *slog.Logger) *ServerHandler {
+	return &ServerHandler{userService: userService, productService: productService, logger: logger}
 }
 
 // CreateToken implements [StrictServerInterface].
@@ -135,7 +135,7 @@ func (s *ServerHandler) CreateProduct(ctx context.Context, request CreateProduct
 // Returns a 404 Not Found if the product does not exist.
 // Returns a 500 Internal Server Error on unexpected failures.
 func (s *ServerHandler) GetProductByID(ctx context.Context, request GetProductByIDRequestObject) (GetProductByIDResponseObject, error) {
-	product, err := s.productService.ReadByID(ctx, request.Params.XClientID, request.Id)
+	product, err := s.productService.ReadByID(ctx, request.Id, request.Params.XClientID)
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
 			return GetProductByID404JSONResponse{Error: "product not found"}, nil
@@ -171,6 +171,7 @@ func (s *ServerHandler) GetProductsSearchName(ctx context.Context, request GetPr
 	response := make(ListProductResponse, 0, len(products))
 	for _, p := range products {
 		response = append(response, ProductResponse{
+			Id:          p.ID,
 			Name:        p.Name,
 			Description: p.Description,
 			Price:       float32(p.Price),
