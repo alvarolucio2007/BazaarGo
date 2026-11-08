@@ -57,6 +57,7 @@ type ListProductResponse = []interface{}
 type ProductResponse struct {
 	CategoryId  string                 `json:"category_id"`
 	Description string                 `json:"description"`
+	Id          string                 `json:"id"`
 	Name        string                 `json:"name"`
 	Price       float32                `json:"price"`
 	Specs       map[string]interface{} `json:"specs"`
@@ -86,6 +87,16 @@ type UserResponse struct {
 	Name  string `json:"name"`
 }
 
+// GetRecentProductsParams defines parameters for GetRecentProducts.
+type GetRecentProductsParams struct {
+	XClientID string `json:"X-Client-ID"`
+}
+
+// GetProductByIDParams defines parameters for GetProductByID.
+type GetProductByIDParams struct {
+	XClientID string `json:"X-Client-ID"`
+}
+
 // RegisterUserJSONRequestBody defines body for RegisterUser for application/json ContentType.
 type RegisterUserJSONRequestBody = CreateUserRequest
 
@@ -110,17 +121,20 @@ type ServerInterface interface {
 	// (POST /products)
 	CreateProduct(w http.ResponseWriter, r *http.Request)
 
+	// (GET /products/recent)
+	GetRecentProducts(w http.ResponseWriter, r *http.Request, params GetRecentProductsParams)
+
+	// (GET /products/search/{name})
+	GetProductsSearchName(w http.ResponseWriter, r *http.Request, name string)
+
 	// (DELETE /products/{id})
 	DeleteProductsId(w http.ResponseWriter, r *http.Request, id string)
 
 	// (GET /products/{id})
-	GetProductByID(w http.ResponseWriter, r *http.Request, id string)
+	GetProductByID(w http.ResponseWriter, r *http.Request, id string, params GetProductByIDParams)
 
 	// (PUT /products/{id})
 	UpdateProduct(w http.ResponseWriter, r *http.Request, id string)
-
-	// (GET /products/{name})
-	GetProductsName(w http.ResponseWriter, r *http.Request, name string)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -142,23 +156,28 @@ func (_ Unimplemented) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// (GET /products/recent)
+func (_ Unimplemented) GetRecentProducts(w http.ResponseWriter, r *http.Request, params GetRecentProductsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /products/search/{name})
+func (_ Unimplemented) GetProductsSearchName(w http.ResponseWriter, r *http.Request, name string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // (DELETE /products/{id})
 func (_ Unimplemented) DeleteProductsId(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // (GET /products/{id})
-func (_ Unimplemented) GetProductByID(w http.ResponseWriter, r *http.Request, id string) {
+func (_ Unimplemented) GetProductByID(w http.ResponseWriter, r *http.Request, id string, params GetProductByIDParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // (PUT /products/{id})
 func (_ Unimplemented) UpdateProduct(w http.ResponseWriter, r *http.Request, id string) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// (GET /products/{name})
-func (_ Unimplemented) GetProductsName(w http.ResponseWriter, r *http.Request, name string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -213,6 +232,77 @@ func (siw *ServerInterfaceWrapper) CreateProduct(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
+// GetRecentProducts operation middleware
+func (siw *ServerInterfaceWrapper) GetRecentProducts(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetRecentProductsParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-Client-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Client-ID")]; found {
+		var XClientID string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Client-ID", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Client-ID", valueList[0], &XClientID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Client-ID", Err: err})
+			return
+		}
+
+		params.XClientID = XClientID
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Client-ID is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Client-ID", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetRecentProducts(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetProductsSearchName operation middleware
+func (siw *ServerInterfaceWrapper) GetProductsSearchName(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "name" -------------
+	var name string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "name", chi.URLParam(r, "name"), &name, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "name", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetProductsSearchName(w, r, name)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // DeleteProductsId operation middleware
 func (siw *ServerInterfaceWrapper) DeleteProductsId(w http.ResponseWriter, r *http.Request) {
 
@@ -254,8 +344,36 @@ func (siw *ServerInterfaceWrapper) GetProductByID(w http.ResponseWriter, r *http
 		return
 	}
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetProductByIDParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-Client-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Client-ID")]; found {
+		var XClientID string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Client-ID", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Client-ID", valueList[0], &XClientID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Client-ID", Err: err})
+			return
+		}
+
+		params.XClientID = XClientID
+
+	} else {
+		err := fmt.Errorf("Header parameter X-Client-ID is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-Client-ID", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetProductByID(w, r, id)
+		siw.Handler.GetProductByID(w, r, id, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -282,32 +400,6 @@ func (siw *ServerInterfaceWrapper) UpdateProduct(w http.ResponseWriter, r *http.
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateProduct(w, r, id)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// GetProductsName operation middleware
-func (siw *ServerInterfaceWrapper) GetProductsName(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-	_ = err
-
-	// ------------- Path parameter "name" -------------
-	var name string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "name", chi.URLParam(r, "name"), &name, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "name", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetProductsName(w, r, name)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -449,7 +541,10 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Put(options.BaseURL+"/products/{id}", wrapper.UpdateProduct)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/products/{name}", wrapper.GetProductsName)
+		r.Get(options.BaseURL+"/products/search/{name}", wrapper.GetProductsSearchName)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/products/recent", wrapper.GetRecentProducts)
 	})
 
 	return r
@@ -633,6 +728,64 @@ func (response CreateProduct500JSONResponse) VisitCreateProductResponse(w http.R
 	return err
 }
 
+type GetRecentProductsRequestObject struct {
+	Params GetRecentProductsParams
+}
+
+type GetRecentProductsResponseObject interface {
+	VisitGetRecentProductsResponse(w http.ResponseWriter) error
+}
+
+type GetRecentProducts200JSONResponse ListProductResponse
+
+func (response GetRecentProducts200JSONResponse) VisitGetRecentProductsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetProductsSearchNameRequestObject struct {
+	Name string `json:"name"`
+}
+
+type GetProductsSearchNameResponseObject interface {
+	VisitGetProductsSearchNameResponse(w http.ResponseWriter) error
+}
+
+type GetProductsSearchName200JSONResponse ListProductResponse
+
+func (response GetProductsSearchName200JSONResponse) VisitGetProductsSearchNameResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetProductsSearchName500JSONResponse ErrorResponse
+
+func (response GetProductsSearchName500JSONResponse) VisitGetProductsSearchNameResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type DeleteProductsIdRequestObject struct {
 	Id string `json:"id"`
 }
@@ -692,7 +845,8 @@ func (response DeleteProductsId500JSONResponse) VisitDeleteProductsIdResponse(w 
 }
 
 type GetProductByIDRequestObject struct {
-	Id string `json:"id"`
+	Id     string `json:"id"`
+	Params GetProductByIDParams
 }
 
 type GetProductByIDResponseObject interface {
@@ -814,42 +968,6 @@ func (response UpdateProduct500JSONResponse) VisitUpdateProductResponse(w http.R
 	return err
 }
 
-type GetProductsNameRequestObject struct {
-	Name string `json:"name"`
-}
-
-type GetProductsNameResponseObject interface {
-	VisitGetProductsNameResponse(w http.ResponseWriter) error
-}
-
-type GetProductsName200JSONResponse ListProductResponse
-
-func (response GetProductsName200JSONResponse) VisitGetProductsNameResponse(w http.ResponseWriter) error {
-
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(response); err != nil {
-		return err
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-	_, err := buf.WriteTo(w)
-	return err
-}
-
-type GetProductsName500JSONResponse ErrorResponse
-
-func (response GetProductsName500JSONResponse) VisitGetProductsNameResponse(w http.ResponseWriter) error {
-
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(response); err != nil {
-		return err
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(500)
-	_, err := buf.WriteTo(w)
-	return err
-}
-
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 
@@ -862,6 +980,12 @@ type StrictServerInterface interface {
 	// (POST /products)
 	CreateProduct(ctx context.Context, request CreateProductRequestObject) (CreateProductResponseObject, error)
 
+	// (GET /products/recent)
+	GetRecentProducts(ctx context.Context, request GetRecentProductsRequestObject) (GetRecentProductsResponseObject, error)
+
+	// (GET /products/search/{name})
+	GetProductsSearchName(ctx context.Context, request GetProductsSearchNameRequestObject) (GetProductsSearchNameResponseObject, error)
+
 	// (DELETE /products/{id})
 	DeleteProductsId(ctx context.Context, request DeleteProductsIdRequestObject) (DeleteProductsIdResponseObject, error)
 
@@ -870,9 +994,6 @@ type StrictServerInterface interface {
 
 	// (PUT /products/{id})
 	UpdateProduct(ctx context.Context, request UpdateProductRequestObject) (UpdateProductResponseObject, error)
-
-	// (GET /products/{name})
-	GetProductsName(ctx context.Context, request GetProductsNameRequestObject) (GetProductsNameResponseObject, error)
 }
 
 type StrictHandlerFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request, request any) (any, error)
@@ -1007,6 +1128,58 @@ func (sh *strictHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetRecentProducts operation middleware
+func (sh *strictHandler) GetRecentProducts(w http.ResponseWriter, r *http.Request, params GetRecentProductsParams) {
+	var request GetRecentProductsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetRecentProducts(ctx, request.(GetRecentProductsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetRecentProducts")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetRecentProductsResponseObject); ok {
+		if err := validResponse.VisitGetRecentProductsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetProductsSearchName operation middleware
+func (sh *strictHandler) GetProductsSearchName(w http.ResponseWriter, r *http.Request, name string) {
+	var request GetProductsSearchNameRequestObject
+
+	request.Name = name
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetProductsSearchName(ctx, request.(GetProductsSearchNameRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetProductsSearchName")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetProductsSearchNameResponseObject); ok {
+		if err := validResponse.VisitGetProductsSearchNameResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // DeleteProductsId operation middleware
 func (sh *strictHandler) DeleteProductsId(w http.ResponseWriter, r *http.Request, id string) {
 	var request DeleteProductsIdRequestObject
@@ -1034,10 +1207,11 @@ func (sh *strictHandler) DeleteProductsId(w http.ResponseWriter, r *http.Request
 }
 
 // GetProductByID operation middleware
-func (sh *strictHandler) GetProductByID(w http.ResponseWriter, r *http.Request, id string) {
+func (sh *strictHandler) GetProductByID(w http.ResponseWriter, r *http.Request, id string, params GetProductByIDParams) {
 	var request GetProductByIDRequestObject
 
 	request.Id = id
+	request.Params = params
 
 	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
 		return sh.ssi.GetProductByID(ctx, request.(GetProductByIDRequestObject))
@@ -1092,52 +1266,27 @@ func (sh *strictHandler) UpdateProduct(w http.ResponseWriter, r *http.Request, i
 	}
 }
 
-// GetProductsName operation middleware
-func (sh *strictHandler) GetProductsName(w http.ResponseWriter, r *http.Request, name string) {
-	var request GetProductsNameRequestObject
-
-	request.Name = name
-
-	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.GetProductsName(ctx, request.(GetProductsNameRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetProductsName")
-	}
-
-	response, err := handler(r.Context(), w, r, request)
-
-	if err != nil {
-		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(GetProductsNameResponseObject); ok {
-		if err := validResponse.VisitGetProductsNameResponse(w); err != nil {
-			sh.options.ResponseErrorHandlerFunc(w, r, err)
-		}
-	} else if response != nil {
-		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
-	}
-}
-
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
 // Stored as a slice of fixed-width chunks rather than one concatenated
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"7FhNT+M6FP0rkR/LQFte39OQHYUBVUIIwbACZmTim9aQ2MZ2mClV/vvIdlKaxuVDlJJFV1D7+t5zT46P",
-	"nUxRzDPBGTCtUDRFKh5Dhu2/BxKwhjPJSR7rc3jIQWkzLiQXIDUFGxVjDSMuJ78oMT/1RACKkNKSshEq",
-	"QkRAxZIKTTnzzjOcgXdCSBrPz7A8uwVpZpSA2NbGhFCTGKdnc5i0zCGsVvHbO4i1XaV5fD+XjzINI5Ow",
-	"CJGEh5xKICi6coDquCswVZKw1nUF6MZT1HF4qUAuJ1Ak5k+G/5wAG+kxinq9EGWUzf9ssAMZpqlZl3CZ",
-	"YY2iciR8D8NYqd9cklqa2WANw7dGXj9rFYi5LKa/l6n5we+BNYl5R4ur7KTRgg/8dym5PAclOFPggW6m",
-	"PZwvlrJhvvwnVOnZznuuQjVktsCWhCS6Rv90nndvp9y6nYV11whFLE/TYlYGS4knpoqnwmZzv31zW90u",
-	"J09Xsn5ZBC7Ml/9SkI0Bf/AZOetdqu+PeW9jhtYdiDL9fx+FjYaXkr7AhO2tpMNArUo3GzUrKUu4zUl1",
-	"auYG+AljecyD/bMhCtEjSGU1gHo73Z2uQcEFMCwoitC/dsiYnh5bZjo41+OOhBFVGqyVCe7UZ/jD5qkM",
-	"CYrQeRlheEYOPSg94GRi+eVMA7PLsBApje3Czp1yWnSOVfkZivx+1jxDizpRRm92wD1mi3+321sZgJqG",
-	"bO3anrIaCxxKYmjtd7srq10/aDzFB5gEM15M7b311T7gLEmp22j/rbPpIdMgGU6DC5CPIAO7wAQWYanc",
-	"mfn6Zeuelrt4fLZqXZU3aXZ1FNbPJg+FNiCotm8bhNtbX+1LZkTCJX0C0i7xCnfaq9ekW94KPlW8CzeP",
-	"Nbvu4uXUw2QZEsTt8N72qagzpaQwpQikoKEppkM7XvKohsReASTOQINUKLqaIsrsq5QeV1eRyF1L6kII",
-	"59oSWBtoKEI/r/B2sr991N3eu5nu9out5rtbcdOQUN8Bnm/WwSTBRR7HoFSSp+nk6w2rv77ap1wHRzxn",
-	"LXKrEI3AY0/HUL24DibDwzboqbtOSyoVuhHnV4tT5B5x1t6ov0ibqz+tvd8J3nRae6zWJbNWu3HaNp7o",
-	"Rpj2TH/FftWp+3DwusaZC1yu8nV6rO/Lp4csExbwJKh4adHTKoq/AwA=",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

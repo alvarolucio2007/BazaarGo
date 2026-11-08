@@ -17,6 +17,10 @@ type ProductCache struct {
 	rdb *redis.Client
 }
 
+func NewProductCache(rdb *redis.Client) *ProductCache {
+	return &ProductCache{rdb: rdb}
+}
+
 // Create implements [ports.Cache].
 // It marshals a [domain.Product] into JSON and stores it in Redis with a predefined TTL.
 //
@@ -38,21 +42,19 @@ func (p *ProductCache) Create(ctx context.Context, item domain.Product) error {
 // Read implements [ports.Cache].
 // It fetches and unmarshals a [domain.Product] from Redis based on its ID.
 //
-// Returns [ErrCacheMiss] if the product is not found in the cache.
+// Returns [domain.ErrNotFound] if the product is not found in the cache.
 // Returns an error if either the Redis operation fails or if the stored data is malformed.
 func (p *ProductCache) Read(ctx context.Context, itemID string) (domain.Product, error) {
 	cacheKey := fmt.Sprintf("product:%s", itemID)
-
 	ctx, cancel := context.WithTimeout(ctx, CacheQueryTimeout)
 	defer cancel()
 
 	data, err := p.rdb.Get(ctx, cacheKey).Result()
 	if errors.Is(err, redis.Nil) {
-		return domain.Product{}, ErrCacheMiss
+		return domain.Product{}, domain.ErrNotFound
 	} else if err != nil {
 		return domain.Product{}, fmt.Errorf("cache: read product error: %w", err)
 	}
-
 	var product domain.Product
 	if err := json.Unmarshal([]byte(data), &product); err != nil {
 		return domain.Product{}, fmt.Errorf("cache: unmarshal product error: %w", err)

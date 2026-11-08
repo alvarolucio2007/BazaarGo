@@ -1,12 +1,14 @@
 package main
 
 import (
-	"log"
+	"context"
 	"os"
 	"time"
 
 	"github.com/alvarolucio2007/bazaargo/internal/adapters/outbound/logger"
+	"github.com/alvarolucio2007/bazaargo/internal/adapters/outbound/mongo"
 	"github.com/alvarolucio2007/bazaargo/internal/adapters/outbound/postgres"
+	"github.com/alvarolucio2007/bazaargo/internal/adapters/outbound/valkey"
 	"github.com/alvarolucio2007/bazaargo/internal/app"
 )
 
@@ -25,7 +27,6 @@ func main() {
 		dbURL = "postgresql://admin:root@localhost:5432/bazaargo?sslmode=disable"
 	}
 	logger.Info("trying to connect to db")
-	log.Println(dbURL)
 	db, err := postgres.NewConn(dbURL, 20, 10, time.Minute)
 	if err != nil {
 		logger.Error("main: error while connecting to db", "error", err)
@@ -37,9 +38,51 @@ func main() {
 			logger.Error("main: error while closing db conn", "error", err)
 		}
 	}()
-	logger.Info("trying to start server")
 
-	app, err := app.New(db, logger, symmetricKey)
+	logger.Info("trying to connect to mongodb")
+
+	mongoURL := os.Getenv("MONGO_URL")
+	if mongoURL == "" {
+		mongoURL = "mongodb://admin:admin123@localhost:27017/bazaargo?authSource=admin"
+	}
+	mongoDBName := os.Getenv("MONGO_DB_NAME")
+	if mongoDBName == "" {
+		mongoDBName = "bazaargo"
+	}
+	mongoCollname := os.Getenv("MONGO_COLL_NAME")
+	if mongoCollname == "" {
+		mongoCollname = "products"
+	}
+	mdb, err := mongo.NewConn(mongoURL)
+	if err != nil {
+		logger.Error("main: error while connecting to mongo", "error", err)
+		os.Exit(1)
+	}
+	defer func() {
+		if err := mdb.Disconnect(context.Background()); err != nil {
+			logger.Error("main: error while closing mongo conn", "error", err)
+		}
+	}()
+
+	mColl := mongo.ConnToCollection(mdb, mongoDBName, mongoCollname)
+
+	logger.Info("mongo connection successful")
+
+	logger.Info("trying to connect to cache")
+
+	valkeyURL := os.Getenv("CACHE_URL")
+	if valkeyURL == "" {
+		valkeyURL = "localhost:6379"
+	}
+	rdb, err := valkey.NewConn(valkeyURL, "", 0)
+	if err != nil {
+		logger.Error("main: error while connecting to cache", "error", err)
+		os.Exit(1)
+	}
+
+	logger.Info("starting server")
+
+	app, err := app.New(db, mColl, rdb, logger, symmetricKey)
 	if err != nil {
 		logger.Error("main:error while building app", "error", err)
 		os.Exit(1)

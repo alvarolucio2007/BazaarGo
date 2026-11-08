@@ -20,6 +20,10 @@ type ProductRepo struct {
 	logger     *slog.Logger
 }
 
+func NewProductRepo(collection *mongo.Collection, logger *slog.Logger) *ProductRepo {
+	return &ProductRepo{collection, logger}
+}
+
 type productModel struct {
 	ID          bson.ObjectID  `bson:"_id,omitempty"`
 	Name        string         `bson:"name"`
