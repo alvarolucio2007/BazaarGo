@@ -17,6 +17,10 @@ type ProductCache struct {
 	rdb *redis.Client
 }
 
+func NewProductCache(rdb *redis.Client) *ProductCache {
+	return &ProductCache{rdb: rdb}
+}
+
 // Create implements [ports.Cache].
 // It marshals a [domain.Product] into JSON and stores it in Redis with a predefined TTL.
 //
@@ -42,7 +46,6 @@ func (p *ProductCache) Create(ctx context.Context, item domain.Product) error {
 // Returns an error if either the Redis operation fails or if the stored data is malformed.
 func (p *ProductCache) Read(ctx context.Context, itemID string) (domain.Product, error) {
 	cacheKey := fmt.Sprintf("product:%s", itemID)
-
 	ctx, cancel := context.WithTimeout(ctx, CacheQueryTimeout)
 	defer cancel()
 
@@ -52,7 +55,6 @@ func (p *ProductCache) Read(ctx context.Context, itemID string) (domain.Product,
 	} else if err != nil {
 		return domain.Product{}, fmt.Errorf("cache: read product error: %w", err)
 	}
-
 	var product domain.Product
 	if err := json.Unmarshal([]byte(data), &product); err != nil {
 		return domain.Product{}, fmt.Errorf("cache: unmarshal product error: %w", err)
