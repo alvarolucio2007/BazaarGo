@@ -275,10 +275,10 @@ func StrictErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
 
 	if errors.Is(err, domain.ErrUnauthorized) {
 		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{"error": "Unauthorized"})
+		_ = json.NewEncoder(w).Encode(map[string]string{"error": "Unauthorized"})
 		return
 	}
 
 	w.WriteHeader(http.StatusInternalServerError)
-	json.NewEncoder(w).Encode(map[string]string{"error": "Internal Server Error"})
+	_ = json.NewEncoder(w).Encode(map[string]string{"error": "Internal Server Error"})
 }
