@@ -110,7 +110,7 @@ paths:
         - name: X-Client-ID
           in: header
           required: true
-          schema: { type: string }
+          schema: { type: string ,maxLength: 64}
       responses:
         '200':
           description: Success
