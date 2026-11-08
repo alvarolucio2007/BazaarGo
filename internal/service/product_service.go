@@ -7,6 +7,7 @@ import (
 
 	"github.com/alvarolucio2007/bazaargo/internal/domain"
 	ports "github.com/alvarolucio2007/bazaargo/internal/ports/outbound"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // ProductService implements the use cases related to product management.
@@ -69,6 +70,12 @@ func (s *ProductService) Create(ctx context.Context, payload CreateProductPayloa
 //
 // Returns [domain.ErrNotFound] if the product doesn't exist in the database.
 func (s *ProductService) ReadByID(ctx context.Context, productID, clientID string) (domain.Product, error) {
+	if _, err := bson.ObjectIDFromHex(productID); err != nil {
+		return domain.Product{}, domain.ErrNotFound
+	}
+	if _, err := bson.ObjectIDFromHex(clientID); err != nil {
+		return domain.Product{}, domain.ErrUserNotFound
+	}
 	product, err := s.cache.Read(ctx, productID)
 	if err == nil {
 		if clientID != "" {
