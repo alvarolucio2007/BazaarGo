@@ -5,16 +5,16 @@ import (
 	"errors"
 	"log/slog"
 
-	"github.com/alvarolucio2007/bazaargo/internal/adapters/outbound/valkey"
 	"github.com/alvarolucio2007/bazaargo/internal/domain"
 	ports "github.com/alvarolucio2007/bazaargo/internal/ports/outbound"
 )
 
 // ProductService implements the use cases related to product management.
 type ProductService struct {
-	repo   ports.ProductRepository
-	cache  ports.Cache[domain.Product]
-	logger *slog.Logger
+	repo       ports.ProductRepository
+	cache      ports.Cache[domain.Product]
+	recentRepo ports.RecentlyViewedRepository
+	logger     *slog.Logger
 }
 
 // NewProductService creates a new instance of ProductService.
@@ -68,12 +68,12 @@ func (s *ProductService) Create(ctx context.Context, payload CreateProductPayloa
 // it fetches from the database and populates the cache for future requests.
 //
 // Returns [domain.ErrNotFound] if the product doesn't exist in the database.
-func (s *ProductService) ReadByID(ctx context.Context, productID string) (domain.Product, error) {
+func (s *ProductService) ReadByID(ctx context.Context, productID, clientID string) (domain.Product, error) {
 	product, err := s.cache.Read(ctx, productID)
 	if err == nil {
 		return product, nil
 	}
-	if !errors.Is(err, valkey.ErrCacheMiss) {
+	if !errors.Is(err, domain.ErrNotFound) {
 		s.logger.ErrorContext(ctx, "failed to read from cache", "error", err)
 	}
 	product, err = s.repo.ReadByID(ctx, productID)
@@ -81,6 +81,11 @@ func (s *ProductService) ReadByID(ctx context.Context, productID string) (domain
 		return domain.Product{}, err
 	}
 	_ = s.cache.Create(ctx, product)
+	if product.ID != "" && clientID != "" {
+		if err := s.recentRepo.Add(ctx, clientID, productID); err != nil {
+			s.logger.ErrorContext(ctx, "failed to add product to recently viewed", "error", err)
+		}
+	}
 	return product, nil
 }
 
@@ -146,4 +151,49 @@ func (s *ProductService) Delete(ctx context.Context, productID string) error {
 	}
 
 	return nil
+}
+
+// readProduct is a helper that implements the Cache-Aside pattern.
+// It attempts to read a product from the cache first. On a cache miss,
+// it fetches from the database and populates the cache for future requests.
+func (s *ProductService) readProduct(ctx context.Context, productID string) (domain.Product, error) {
+	product, err := s.cache.Read(ctx, productID)
+	if err == nil {
+		return product, nil
+	}
+	if !errors.Is(err, domain.ErrNotFound) {
+		s.logger.ErrorContext(ctx, "failed to read from cache", "error", err)
+	}
+	product, err = s.repo.ReadByID(ctx, productID)
+	if err != nil {
+		return domain.Product{}, err
+	}
+	if err := s.cache.Create(ctx, product); err != nil {
+		s.logger.ErrorContext(ctx, "failed to cache product", "error", err)
+	}
+	return product, nil
+}
+
+// GetRecent retrieves the list of recently viewed products for a given client.
+// It fetches the IDs from the Redis repository and then populates the full
+// product data using the cache-aside helper.
+//
+// Products that no longer exist in the database are silently skipped.
+func (s *ProductService) GetRecent(ctx context.Context, clientID string) ([]domain.Product, error) {
+	productIDs, err := s.recentRepo.Get(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
+	products := make([]domain.Product, 0, len(productIDs))
+	for _, id := range productIDs {
+		prod, err := s.readProduct(ctx, id)
+		if err != nil {
+			if errors.Is(err, domain.ErrNotFound) {
+				continue
+			}
+			return nil, err
+		}
+		products = append(products, prod)
+	}
+	return products, nil
 }
