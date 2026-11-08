@@ -15,6 +15,10 @@ type RecentlyViewedRepo struct {
 	rdb *redis.Client
 }
 
+func NewRecentlyViewedRepo(rdb *redis.Client) *RecentlyViewedRepo {
+	return &RecentlyViewedRepo{rdb}
+}
+
 // Add implements [ports.RecentlyViewedRepository].
 func (r *RecentlyViewedRepo) Add(ctx context.Context, clientID string, productID string) error {
 	key := fmt.Sprintf("recent:%s", clientID)
@@ -22,10 +26,10 @@ func (r *RecentlyViewedRepo) Add(ctx context.Context, clientID string, productID
 	defer cancel()
 
 	pipe := r.rdb.Pipeline()
+	pipe.LRem(ctx, key, 0, productID)
 	pipe.LPush(ctx, key, productID)
 	pipe.LTrim(ctx, key, 0, 4)
 	pipe.Expire(ctx, key, 7*24*time.Hour)
-
 	_, err := pipe.Exec(ctx)
 	return err
 }
