@@ -25,7 +25,7 @@ func (r *RecentlyViewedRepo) Add(ctx context.Context, clientID string, productID
 	ctx, cancel := context.WithTimeout(ctx, CacheQueryTimeout)
 	defer cancel()
 
-	pipe := r.rdb.Pipeline()
+	pipe := r.rdb.TxPipeline()
 	pipe.LRem(ctx, key, 0, productID)
 	pipe.LPush(ctx, key, productID)
 	pipe.LTrim(ctx, key, 0, 4)
