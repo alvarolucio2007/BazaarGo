@@ -72,7 +72,7 @@ func main() {
 
 	valkeyURL := os.Getenv("CACHE_URL")
 	if valkeyURL == "" {
-		valkeyURL = "cache:6379"
+		valkeyURL = "localhost:6379"
 	}
 	rdb, err := valkey.NewConn(valkeyURL, "", 0)
 	if err != nil {
