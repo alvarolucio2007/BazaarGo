@@ -106,9 +106,11 @@ paths:
         - name: id
           in: path
           required: true
-          schema:
-            type: string
-            pattern: '^[a-fA-F0-9]{24}$'
+          schema: { type: string }
+        - name: X-Client-ID
+          in: header
+          required: true
+          schema: { type: string }
       responses:
         '200':
           description: Success
@@ -134,8 +136,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
-      deprecated: false
     put:
       operationId: UpdateProduct
       parameters:
@@ -223,6 +223,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /products/recent:
+    get:
+      operationId: GetRecentProducts
+      parameters:
+        - name: X-Client-ID
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListProductResponse'
 
 components:
   schemas:
@@ -289,8 +304,9 @@ components:
         specs: {type: object, additionalProperties: true}
     ProductResponse:
       type: object
-      required: [name,description,price,stock,category_id,specs]
+      required: [id,name,description,price,stock,category_id,specs]
       properties:
+        id: {type: string}
         name: {type: string}
         description: {type: string}
         price: {type: number}
