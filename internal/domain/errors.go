@@ -4,9 +4,9 @@ import "errors"
 
 var (
 	//Generic
-
-	ErrNotFound = errors.New("not found")
-	ErrConflict = errors.New("already exists")
+	ErrUnauthorized = errors.New("unauthorized")
+	ErrNotFound     = errors.New("not found")
+	ErrConflict     = errors.New("already exists")
 
 	//User
 
