@@ -69,6 +69,8 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: admin
       ME_CONFIG_MONGODB_ADMINPASSWORD: admin123
       ME_CONFIG_MONGODB_URL: mongodb://admin:admin123@mongo:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: meu_usuario
+      ME_CONFIG_BASICAUTH_PASSWORD: minha_senha
     depends_on:
       mongo:
         condition: service_healthy
