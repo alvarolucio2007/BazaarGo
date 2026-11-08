@@ -35,7 +35,7 @@ func New(db *sql.DB, mColl *mongo.Collection, rdb *redis.Client, logger *slog.Lo
 	productRepo := iMongo.NewProductRepo(mColl, logger)
 	productService := service.NewProductService(productRepo, productCache, recentlyViewedCache, logger)
 
-	handler := api.NewServerHandler(userService, productService, logger)
+	handler := api.NewServerHandler(userService, productService, pasetoAuth, logger)
 	return &App{handler}, nil
 }
 func GenerateSymmetricKey() ([]byte, error) {

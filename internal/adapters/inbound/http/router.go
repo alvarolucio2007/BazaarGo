@@ -49,7 +49,16 @@ func (h *ServerHandler) Mount() http.Handler {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	})
-	strictHandler := NewStrictHandler(h, nil)
+	strictHandler := NewStrictHandlerWithOptions(
+		h,
+		[]StrictMiddlewareFunc{
+			h.AuthStrictMiddleware,
+		},
+		StrictHTTPServerOptions{
+			RequestErrorHandlerFunc:  StrictErrorHandler,
+			ResponseErrorHandlerFunc: StrictErrorHandler,
+		},
+	)
 	HandlerFromMux(strictHandler, r)
 	return r
 }
