@@ -4,8 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/alvarolucio2007/bazaargo/internal/domain"
 	ports "github.com/alvarolucio2007/bazaargo/internal/ports/outbound"
@@ -268,6 +271,28 @@ func (s *ServerHandler) DeleteProductsId(ctx context.Context, request DeleteProd
 	}
 
 	return DeleteProductsId204Response{}, nil
+}
+
+func (s *ServerHandler) Checkout(ctx context.Context, request CheckoutRequestObject) (CheckoutResponseObject, error) {
+	if len(request.Body.Items) == 0 {
+		return Checkout400JSONResponse{Error: "cart is empty"}, nil
+	}
+
+	var mensagem strings.Builder
+	mensagem.WriteString("Olá, gostaria de pedir:\n")
+	var total float64
+
+	for _, item := range request.Body.Items {
+		subtotal := item.Price * float32(item.Quantity)
+		fmt.Fprintf(&mensagem, "- %dx %s (R$ %.2f)\n", item.Quantity, item.Name, subtotal)
+		total += float64(subtotal)
+	}
+
+	fmt.Fprintf(&mensagem, "\n*Total: R$ %.2f*", total)
+
+	link := fmt.Sprintf("https://wa.me/%s?text=%s", request.Body.Phone, url.QueryEscape(mensagem.String()))
+
+	return Checkout200JSONResponse{WhatsappLink: &link}, nil
 }
 
 func StrictErrorHandler(w http.ResponseWriter, r *http.Request, err error) {

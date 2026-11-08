@@ -87,6 +87,16 @@ type UserResponse struct {
 	Name  string `json:"name"`
 }
 
+// CheckoutJSONBody defines parameters for Checkout.
+type CheckoutJSONBody struct {
+	Items []struct {
+		Name     string  `json:"name"`
+		Price    float32 `json:"price"`
+		Quantity int     `json:"quantity"`
+	} `json:"items"`
+	Phone string `json:"phone"`
+}
+
 // GetRecentProductsParams defines parameters for GetRecentProducts.
 type GetRecentProductsParams struct {
 	XClientID string `json:"X-Client-ID"`
@@ -103,6 +113,9 @@ type RegisterUserJSONRequestBody = CreateUserRequest
 // CreateTokenJSONRequestBody defines body for CreateToken for application/json ContentType.
 type CreateTokenJSONRequestBody = CreateUserToken
 
+// CheckoutJSONRequestBody defines body for Checkout for application/json ContentType.
+type CheckoutJSONRequestBody CheckoutJSONBody
+
 // CreateProductJSONRequestBody defines body for CreateProduct for application/json ContentType.
 type CreateProductJSONRequestBody = CreateProductRequest
 
@@ -117,6 +130,9 @@ type ServerInterface interface {
 
 	// (POST /auth/token)
 	CreateToken(w http.ResponseWriter, r *http.Request)
+
+	// (POST /checkout)
+	Checkout(w http.ResponseWriter, r *http.Request)
 
 	// (POST /products)
 	CreateProduct(w http.ResponseWriter, r *http.Request)
@@ -148,6 +164,11 @@ func (_ Unimplemented) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 // (POST /auth/token)
 func (_ Unimplemented) CreateToken(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /checkout)
+func (_ Unimplemented) Checkout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -209,6 +230,20 @@ func (siw *ServerInterfaceWrapper) CreateToken(w http.ResponseWriter, r *http.Re
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateToken(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// Checkout operation middleware
+func (siw *ServerInterfaceWrapper) Checkout(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Checkout(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -546,6 +581,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/products/recent", wrapper.GetRecentProducts)
 	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/checkout", wrapper.Checkout)
+	})
 
 	return r
 }
@@ -674,6 +712,44 @@ func (response CreateToken500JSONResponse) VisitCreateTokenResponse(w http.Respo
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CheckoutRequestObject struct {
+	Body *CheckoutJSONRequestBody
+}
+
+type CheckoutResponseObject interface {
+	VisitCheckoutResponse(w http.ResponseWriter) error
+}
+
+type Checkout200JSONResponse struct {
+	WhatsappLink *string `json:"whatsapp_link,omitempty"`
+}
+
+func (response Checkout200JSONResponse) VisitCheckoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type Checkout400JSONResponse ErrorResponse
+
+func (response Checkout400JSONResponse) VisitCheckoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
 	_, err := buf.WriteTo(w)
 	return err
 }
@@ -1019,6 +1095,9 @@ type StrictServerInterface interface {
 	// (POST /auth/token)
 	CreateToken(ctx context.Context, request CreateTokenRequestObject) (CreateTokenResponseObject, error)
 
+	// (POST /checkout)
+	Checkout(ctx context.Context, request CheckoutRequestObject) (CheckoutResponseObject, error)
+
 	// (POST /products)
 	CreateProduct(ctx context.Context, request CreateProductRequestObject) (CreateProductResponseObject, error)
 
@@ -1132,6 +1211,37 @@ func (sh *strictHandler) CreateToken(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(CreateTokenResponseObject); ok {
 		if err := validResponse.VisitCreateTokenResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Checkout operation middleware
+func (sh *strictHandler) Checkout(w http.ResponseWriter, r *http.Request) {
+	var request CheckoutRequestObject
+
+	var body CheckoutJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.Checkout(ctx, request.(CheckoutRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Checkout")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CheckoutResponseObject); ok {
+		if err := validResponse.VisitCheckoutResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -1313,23 +1423,25 @@ func (sh *strictHandler) UpdateProduct(w http.ResponseWriter, r *http.Request, i
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"7Fhtb9s2EP4rAtePSuV0XrHqW16awljRBnEDDEi9gRHPNluJZI9UN9fQfy9ISrZl046LOK6L5FNikbyX",
-	"5557eNKUZLJQUoAwmqRTorMxFNT9e4ZADVyiZGVmruBLCdrY5wqlAjQc3K6MGhhJnPzLmf1pJgpISrRB",
-	"LkakigkDnSFXhksRXBe0gOCCQp4troiyuAW0K1pB5nxTxrg1TPPLhZgMlhA3p+TtJ8iMO2Vk9nnBHhcG",
-	"RtZgFROELyVHYCS98QG1426CaYzEraybgAYBpx7Daw24HkA1tH8K+v9bECMzJunxcUwKLhZ/rqADBeW5",
-	"PTeUWFBD0vpJ/CMIU63/k8haZmYPWzH8uWI3jFoTxIIVm99maD7IzyBWgfmBFHeZyUoKoeBfI0q8Aq2k",
-	"0BAI3S4HMF925baF7L/l2sw6b+6FGyicg2cIw/Qj+S2Zd29St26ydO4jIako87yauaGIdGK9BDzstrnX",
-	"HDu4nnddvNPGd5xeD6xpKL+ZIH5byP61Yk/ifM8aeVley/376fKaXpipExfmZZfEKwmvBX0DZW2ojevV",
-	"RC28kJXIzaRvJcKndwoUAU9Km8mU3LpfF01wlyf91x/eW/DcAZLWG+bxjo1RpLK2uRhKFy43uV05pd8o",
-	"xTcyOrnskZh8BdSOXuT4eed5xyYoFQiqOEnJ7+6R1VozdlEltDTjBGHEtQGnoEp6YtvSUFvwHiMpuap3",
-	"2BISDwxocyrZxJVOCgPCHaNK5TxzB5NP2tPcC2UjoyQNy+jq1V21a2Cp7B54Brn4X3SOdxZAi57Od6td",
-	"HX0jHyWzsHY7nZ35bt9vAeenlEUzXKzvV/vzfSbFMOe+h//YZ9I9YQAFzaM+4FfAyB2wG6u4Zu5M18O0",
-	"9dXy885Ds9Z72Yqzu4Owfe0FIHQboqZ9D4G4x/vzfS0sSSTyb8AOi7zKDxL6LurWA8eDkndpqNmz6i7P",
-	"xAEk6y1Rdija+9gpPB9wSHrTHm1uBtWgxfAEIasjHUGA52/AXLkddZW1G0+QFmAAtbPPbSxjoAywmcFS",
-	"8vfRWc5BmKPeOVnma7wAwPJUN3hANQ69RQZgff/XsgwkGihm42Rqk6s2YdWg1HcH3vl5NISXHfHmaAm/",
-	"8ZeCyW6L5DCaaeVBKngy5cxVjEEOBlaLdu6eN3Xrsa3qxdnGailqbGgkJf/c0KPhydFF5+jVYPqiWz0j",
-	"8Ra17PqAF5P1YbKoX2YZaD0s83zyqJW22+nuz/k7aaILWYpfR+PjuyTqdNI73wXXV17L73khLHxgeNmN",
-	"9yp8W4he3X4/v/MeNfmrmKgywO7WV8CfJOS7fw0Iftvc6jUgcI94Y+4eebpGnjrpzleFqvo+AA==",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

@@ -34,6 +34,7 @@ func (h *ServerHandler) Mount() http.Handler {
 	r.Use(httprate.LimitBy(100, time.Minute, func(r *http.Request) (string, error) {
 		return httprate.CanonicalizeIP(middleware.GetClientIP(r.Context())), nil
 	}))
+	r.Use(middleware.RequestSize(1024 * 1024))
 	swagger, err := GetSwagger()
 	if err != nil {
 		panic(err)
