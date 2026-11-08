@@ -18,8 +18,8 @@ type ProductService struct {
 }
 
 // NewProductService creates a new instance of ProductService.
-func NewProductService(repo ports.ProductRepository, cache ports.Cache[domain.Product], logger *slog.Logger) *ProductService {
-	return &ProductService{repo: repo, cache: cache, logger: logger}
+func NewProductService(repo ports.ProductRepository, cache ports.Cache[domain.Product], recentRepo ports.RecentlyViewedRepository, logger *slog.Logger) *ProductService {
+	return &ProductService{repo: repo, cache: cache, recentRepo: recentRepo, logger: logger}
 }
 
 // CreateProductPayload holds the necessary data to create a new product.
@@ -71,6 +71,11 @@ func (s *ProductService) Create(ctx context.Context, payload CreateProductPayloa
 func (s *ProductService) ReadByID(ctx context.Context, productID, clientID string) (domain.Product, error) {
 	product, err := s.cache.Read(ctx, productID)
 	if err == nil {
+		if clientID != "" {
+			if err := s.recentRepo.Add(ctx, clientID, productID); err != nil {
+				s.logger.ErrorContext(ctx, "failed to add product to recently viewed", "error", err)
+			}
+		}
 		return product, nil
 	}
 	if !errors.Is(err, domain.ErrNotFound) {
@@ -80,8 +85,10 @@ func (s *ProductService) ReadByID(ctx context.Context, productID, clientID strin
 	if err != nil {
 		return domain.Product{}, err
 	}
-	_ = s.cache.Create(ctx, product)
-	if product.ID != "" && clientID != "" {
+	if err := s.cache.Create(ctx, product); err != nil {
+		s.logger.ErrorContext(ctx, "failed to cache product", "error", err)
+	}
+	if clientID != "" {
 		if err := s.recentRepo.Add(ctx, clientID, productID); err != nil {
 			s.logger.ErrorContext(ctx, "failed to add product to recently viewed", "error", err)
 		}
