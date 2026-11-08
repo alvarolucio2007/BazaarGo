@@ -74,6 +74,8 @@ paths:
   /products:
     post:
       operationId: CreateProduct
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -89,6 +91,12 @@ paths:
                 $ref: '#/components/schemas/ProductResponse'
         '400':
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -138,6 +146,8 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
     put:
       operationId: UpdateProduct
+      security:
+        - BearerAuth: []
       parameters:
         - name: id
           in: path
@@ -160,6 +170,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Not Found
           content:
@@ -173,6 +189,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
     delete:
+      security:
+        - BearerAuth: []
       parameters:
         - name: id
           in: path
@@ -185,6 +203,12 @@ paths:
           description: Deleted Successfully
         '400':
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -240,6 +264,11 @@ paths:
                 $ref: '#/components/schemas/ListProductResponse'
 
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: PASETO
   schemas:
     ErrorResponse:
       type: object
