@@ -262,6 +262,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ListProductResponse'
+  /checkout:
+    post:
+      operationId: Checkout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items, phone]
+              properties:
+                phone: { type: string }
+                items:
+                  type: array
+                  items:
+                    type: object
+                    required: [name, price, quantity]
+                    properties:
+                      name: { type: string }
+                      price: { type: number }
+                      quantity: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  whatsapp_link: { type: string }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
   securitySchemes:
