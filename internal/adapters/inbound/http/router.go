@@ -33,6 +33,7 @@ func (h *ServerHandler) Mount() http.Handler {
 		MaxAge:           300,
 	}))
 	r.Use(otelchi.Middleware("bazaargo-api"))
+	r.Use(middleware.Recoverer)
 	r.Use(httprate.LimitBy(100, time.Minute, func(r *http.Request) (string, error) {
 		return httprate.CanonicalizeIP(middleware.GetClientIP(r.Context())), nil
 	}))
