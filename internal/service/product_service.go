@@ -7,7 +7,7 @@ import (
 
 	"github.com/alvarolucio2007/bazaargo/internal/domain"
 	ports "github.com/alvarolucio2007/bazaargo/internal/ports/outbound"
-	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.opentelemetry.io/otel/codes"
 )
 
 // ProductService implements the use cases related to product management.
@@ -42,6 +42,8 @@ type CreateProductPayload struct {
 //
 // Cache insertion failures are logged but do not prevent the product creation.
 func (s *ProductService) Create(ctx context.Context, payload CreateProductPayload) (domain.Product, error) {
+	ctx, span := tracer.Start(ctx, "ProductService.CreateProduct")
+	defer span.End()
 	product := domain.Product{
 		Name:        payload.Name,
 		Description: payload.Description,
@@ -51,13 +53,18 @@ func (s *ProductService) Create(ctx context.Context, payload CreateProductPayloa
 		Specs:       payload.Specs,
 	}
 	if err := product.Validate(); err != nil {
+		span.SetStatus(codes.Error, err.Error())
 		return domain.Product{}, err
 	}
 	if err := s.repo.Create(ctx, &product); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return domain.Product{}, err
 	}
 
 	if err := s.cache.Create(ctx, product); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to cache product", "error", err)
 	}
 
@@ -70,43 +77,57 @@ func (s *ProductService) Create(ctx context.Context, payload CreateProductPayloa
 //
 // Returns [domain.ErrNotFound] if the product doesn't exist in the database.
 func (s *ProductService) ReadByID(ctx context.Context, productID, clientID string) (domain.Product, error) {
-	if _, err := bson.ObjectIDFromHex(productID); err != nil {
-		return domain.Product{}, domain.ErrNotFound
-	}
-	if _, err := bson.ObjectIDFromHex(clientID); err != nil {
-		return domain.Product{}, domain.ErrUserNotFound
-	}
-	product, err := s.cache.Read(ctx, productID)
-	if err == nil {
-		if clientID != "" {
-			if err := s.recentRepo.Add(ctx, clientID, productID); err != nil {
-				s.logger.ErrorContext(ctx, "failed to add product to recently viewed", "error", err)
-			}
-		}
-		return product, nil
-	}
-	if !errors.Is(err, domain.ErrNotFound) {
-		s.logger.ErrorContext(ctx, "failed to read from cache", "error", err)
-	}
-	product, err = s.repo.ReadByID(ctx, productID)
+	ctx, span := tracer.Start(ctx, "ProductService.ReadByID")
+	defer span.End()
+
+	var product domain.Product
+	var err error
+
+	product, err = s.cache.Read(ctx, productID)
 	if err != nil {
-		return domain.Product{}, err
+		if !errors.Is(err, domain.ErrNotFound) {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+			s.logger.ErrorContext(ctx, "failed to read from cache", "error", err)
+		}
+
+		product, err = s.repo.ReadByID(ctx, productID)
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+			return domain.Product{}, err
+		}
+
+		if err := s.cache.Create(ctx, product); err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+			s.logger.ErrorContext(ctx, "failed to cache product", "error", err)
+		}
 	}
-	if err := s.cache.Create(ctx, product); err != nil {
-		s.logger.ErrorContext(ctx, "failed to cache product", "error", err)
-	}
+
 	if clientID != "" {
 		if err := s.recentRepo.Add(ctx, clientID, productID); err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			s.logger.ErrorContext(ctx, "failed to add product to recently viewed", "error", err)
 		}
 	}
+
 	return product, nil
 }
 
 // ListByName retrieves a list of products matching the given name.
 // It delegates the search directly to the repository.
 func (s *ProductService) ListByName(ctx context.Context, name string) ([]domain.Product, error) {
-	return s.repo.ListByName(ctx, name)
+	ctx, span := tracer.Start(ctx, "ProductService.ListByName")
+	defer span.End()
+	products, err := s.repo.ListByName(ctx, name)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
+	}
+	return products, nil
 }
 
 // UpdateProductPayload holds the optional fields for updating a product.
@@ -127,6 +148,8 @@ type UpdateProductPayload struct {
 //
 // Returns an error if the repository update fails.
 func (s *ProductService) Update(ctx context.Context, payload UpdateProductPayload) error {
+	ctx, span := tracer.Start(ctx, "ProductService.Update")
+	defer span.End()
 	product := domain.Product{
 		ID:          payload.ID,
 		Name:        payload.Name,
@@ -137,14 +160,19 @@ func (s *ProductService) Update(ctx context.Context, payload UpdateProductPayloa
 		Specs:       payload.Specs,
 	}
 	if err := product.Validate(); err != nil {
+		span.SetStatus(codes.Error, err.Error())
 		return err
 	}
 
 	if err := s.repo.Update(ctx, product); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return err
 	}
 
 	if err := s.cache.Delete(ctx, product.ID); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "error while deleting cached product", "error", err)
 	}
 
@@ -156,11 +184,17 @@ func (s *ProductService) Update(ctx context.Context, payload UpdateProductPayloa
 //
 // Returns an error if the repository deletion fails.
 func (s *ProductService) Delete(ctx context.Context, productID string) error {
+	ctx, span := tracer.Start(ctx, "ProductService.Delete")
+	defer span.End()
 	if err := s.repo.Delete(ctx, productID); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return err
 	}
 
 	if err := s.cache.Delete(ctx, productID); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "error while deleting cached product", "error", err)
 	}
 
@@ -194,8 +228,12 @@ func (s *ProductService) readProduct(ctx context.Context, productID string) (dom
 //
 // Products that no longer exist in the database are silently skipped.
 func (s *ProductService) GetRecent(ctx context.Context, clientID string) ([]domain.Product, error) {
+	ctx, span := tracer.Start(ctx, "ProductService.GetRecent")
+	defer span.End()
 	productIDs, err := s.recentRepo.Get(ctx, clientID)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return nil, err
 	}
 	products := make([]domain.Product, 0, len(productIDs))
@@ -205,6 +243,8 @@ func (s *ProductService) GetRecent(ctx context.Context, clientID string) ([]doma
 			if errors.Is(err, domain.ErrNotFound) {
 				continue
 			}
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			return nil, err
 		}
 		products = append(products, prod)
