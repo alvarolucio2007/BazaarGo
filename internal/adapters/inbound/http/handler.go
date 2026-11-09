@@ -13,9 +13,12 @@ import (
 	"github.com/alvarolucio2007/bazaargo/internal/domain"
 	ports "github.com/alvarolucio2007/bazaargo/internal/ports/outbound"
 	"github.com/alvarolucio2007/bazaargo/internal/service"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
 )
 
 var _ StrictServerInterface = (*ServerHandler)(nil)
+var tracer = otel.Tracer("bazaargo/internal/http")
 
 // ServerHandler is the primary inbound adapter for HTTP requests.
 // It implements the generated [StrictServerInterface] and maps HTTP requests
@@ -41,13 +44,19 @@ func NewServerHandler(userService *service.UserService, productService *service.
 //
 // Returns a generic internal error (500) on unexpected service failures.
 func (s *ServerHandler) CreateToken(ctx context.Context, request CreateTokenRequestObject) (CreateTokenResponseObject, error) {
+	ctx, span := tracer.Start(ctx, "ServerHandler.CreateToken")
+	defer span.End()
 	token, err := s.userService.VerifyUser(ctx, string(request.Body.Email), request.Body.Password)
 	if err != nil {
 		if errors.Is(err, domain.ErrInvalidCredentials) {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			return CreateToken401JSONResponse{Error: "invalid email or password"}, nil
 		}
 
-		s.logger.Error("unexpected error creating token", "error", err)
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		s.logger.ErrorContext(ctx, "unexpected error creating token", "error", err)
 		return CreateToken500JSONResponse{Error: "internal server error"}, nil
 	}
 
@@ -65,6 +74,8 @@ func (s *ServerHandler) CreateToken(ctx context.Context, request CreateTokenRequ
 //
 // Returns a generic internal error (500) on unexpected service failures.
 func (s *ServerHandler) RegisterUser(ctx context.Context, request RegisterUserRequestObject) (RegisterUserResponseObject, error) {
+	ctx, span := tracer.Start(ctx, "ServerHandler.RegisterUser")
+	defer span.End()
 	payload := service.CreateUserPayload{
 		Name:     request.Body.Name,
 		CPF:      request.Body.Cpf,
@@ -75,18 +86,23 @@ func (s *ServerHandler) RegisterUser(ctx context.Context, request RegisterUserRe
 	user, err := s.userService.Create(ctx, payload)
 	if err != nil {
 		if errors.Is(err, domain.ErrInvalidCPF) {
+			span.SetStatus(codes.Error, err.Error())
 			return RegisterUser400JSONResponse{Error: "invalid CPF format"}, nil
 		}
 
 		if errors.Is(err, domain.ErrInvalidEmail) {
+			span.SetStatus(codes.Error, err.Error())
 			return RegisterUser400JSONResponse{Error: "invalid Email format"}, nil
 		}
 
 		if errors.Is(err, domain.ErrEmailAlreadyExists) || errors.Is(err, domain.ErrCPFAlreadyExists) {
+			span.SetStatus(codes.Error, err.Error())
 			return RegisterUser409JSONResponse{Error: "user with this email or CPF already exists"}, nil
 		}
 
-		s.logger.Error("unexpected error creating user", "error", err)
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		s.logger.ErrorContext(ctx, "unexpected error creating user", "error", err)
 		return nil, err
 	}
 
@@ -105,6 +121,8 @@ func (s *ServerHandler) RegisterUser(ctx context.Context, request RegisterUserRe
 // Returns a 400 Bad Request if the product data fails domain validation.
 // Returns a 500 Internal Server Error on unexpected failures.
 func (s *ServerHandler) CreateProduct(ctx context.Context, request CreateProductRequestObject) (CreateProductResponseObject, error) {
+	ctx, span := tracer.Start(ctx, "ServerHandler.CreateProduct")
+	defer span.End()
 	payload := service.CreateProductPayload{
 		Name:        request.Body.Name,
 		Description: request.Body.Description,
@@ -117,11 +135,14 @@ func (s *ServerHandler) CreateProduct(ctx context.Context, request CreateProduct
 	product, err := s.productService.Create(ctx, payload)
 	if err != nil {
 		if errors.Is(err, domain.ErrInvalidProduct) {
+			span.SetStatus(codes.Error, err.Error())
 			return CreateProduct400JSONResponse{
 				Error: "Invalid product. Please check the product data.",
 			}, nil
 		}
 
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "unexpected error creating product", "error", err)
 		return nil, err
 	}
@@ -142,12 +163,16 @@ func (s *ServerHandler) CreateProduct(ctx context.Context, request CreateProduct
 // Returns a 404 Not Found if the product does not exist.
 // Returns a 500 Internal Server Error on unexpected failures.
 func (s *ServerHandler) GetProductByID(ctx context.Context, request GetProductByIDRequestObject) (GetProductByIDResponseObject, error) {
+	ctx, span := tracer.Start(ctx, "ServerHandler.GetProductByID")
+	defer span.End()
 	product, err := s.productService.ReadByID(ctx, request.Id, request.Params.XClientID)
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
+			span.SetStatus(codes.Error, err.Error())
 			return GetProductByID404JSONResponse{Error: "product not found"}, nil
 		}
-
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "unexpected error fetching product", "error", err)
 		return nil, err
 	}
@@ -169,9 +194,13 @@ func (s *ServerHandler) GetProductByID(ctx context.Context, request GetProductBy
 // Returns a 200 OK response with the list of products (empty if none match).
 // Returns a 500 Internal Server Error on unexpected failures.
 func (s *ServerHandler) GetProductsSearchName(ctx context.Context, request GetProductsSearchNameRequestObject) (GetProductsSearchNameResponseObject, error) {
+	ctx, span := tracer.Start(ctx, "ServerHandler.GetProductsSearchName")
+	defer span.End()
 	name := request.Name
 	products, err := s.productService.ListByName(ctx, name)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "unexpected error fetching products by name", "error", err)
 		return nil, err
 	}
@@ -192,8 +221,12 @@ func (s *ServerHandler) GetProductsSearchName(ctx context.Context, request GetPr
 
 // GetRecentProducts implements [StrictServerInterface].
 func (s *ServerHandler) GetRecentProducts(ctx context.Context, request GetRecentProductsRequestObject) (GetRecentProductsResponseObject, error) {
+	ctx, span := tracer.Start(ctx, "ServerHandler.GetRecentProducts")
+	defer span.End()
 	products, err := s.productService.GetRecent(ctx, request.Params.XClientID)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "unexpected error fetching recent products", "error", err)
 		return nil, err
 	}
@@ -221,6 +254,8 @@ func (s *ServerHandler) GetRecentProducts(ctx context.Context, request GetRecent
 // Returns a 404 Not Found if the product does not exist.
 // Returns a 500 Internal Server Error on unexpected failures.
 func (s *ServerHandler) UpdateProduct(ctx context.Context, request UpdateProductRequestObject) (UpdateProductResponseObject, error) {
+	ctx, span := tracer.Start(ctx, "ServerHandler.UpdateProduct")
+	defer span.End()
 	payload := service.UpdateProductPayload{
 		ID:          request.Id,
 		Name:        request.Body.Name,
@@ -233,17 +268,21 @@ func (s *ServerHandler) UpdateProduct(ctx context.Context, request UpdateProduct
 
 	if err := s.productService.Update(ctx, payload); err != nil {
 		if errors.Is(err, domain.ErrInvalidProduct) {
+			span.SetStatus(codes.Error, err.Error())
 			return UpdateProduct400JSONResponse{
 				Error: "Invalid product. Please check the product data.",
 			}, nil
 		}
 
 		if errors.Is(err, domain.ErrNotFound) {
+			span.SetStatus(codes.Error, err.Error())
 			return UpdateProduct404JSONResponse{
 				Error: "Not Found",
 			}, nil
 		}
 
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "unexpected error updating product", "error", err)
 		return nil, err
 	}
@@ -257,15 +296,18 @@ func (s *ServerHandler) UpdateProduct(ctx context.Context, request UpdateProduct
 // Returns a 404 Not Found if the product does not exist.
 // Returns a 500 Internal Server Error on unexpected failures.
 func (s *ServerHandler) DeleteProductsId(ctx context.Context, request DeleteProductsIdRequestObject) (DeleteProductsIdResponseObject, error) {
+	ctx, span := tracer.Start(ctx, "ServerHandler.DeleteProductsId")
+	defer span.End()
 	id := request.Id
-
 	if err := s.productService.Delete(ctx, id); err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
+			span.SetStatus(codes.Error, err.Error())
 			return DeleteProductsId404JSONResponse{
 				Error: "Not Found",
 			}, nil
 		}
-
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "unexpected error deleting product", "error", err)
 		return nil, err
 	}

@@ -8,11 +8,13 @@ import (
 
 	"github.com/alvarolucio2007/bazaargo/internal/domain"
 	ports "github.com/alvarolucio2007/bazaargo/internal/ports/outbound"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
 )
 
-var (
-	_ ports.UserRepository = (*UserRepo)(nil)
-)
+var tracer = otel.Tracer("bazaargo/internal/adapters/outbound/postgres")
+
+var _ ports.UserRepository = (*UserRepo)(nil)
 
 type UserRepo struct {
 	db *sql.DB
@@ -40,14 +42,22 @@ func NewUserRepo(db *sql.DB) *UserRepo {
 //
 // Can return other DB errors.
 func (u *UserRepo) Create(ctx context.Context, user *domain.User) error {
+	ctx, span := tracer.Start(ctx, "UserRepo.Create")
+	defer span.End()
+
 	query := `INSERT INTO users (name,cpf,email,password_hash) VALUES ($1,$2,$3,$4) RETURNING id,created_at`
 	ctx, cancel := context.WithTimeout(ctx, PostgresQueryTimeout)
 	defer cancel()
+
 	if err := u.db.QueryRowContext(ctx, query, user.Name, user.CPF, user.Email, user.PasswordHash).Scan(&user.ID, &user.CreatedAt); err != nil {
 		translated := translateError(err)
 		if !errors.Is(err, translated) {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			return translated
 		}
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return fmt.Errorf("postgres: create user: %w", err)
 	}
 	return nil
@@ -63,19 +73,28 @@ func (u *UserRepo) Create(ctx context.Context, user *domain.User) error {
 //
 // Returns specific domain errors in other cases.
 func (u *UserRepo) Read(ctx context.Context, userID int64) (domain.User, error) {
+	ctx, span := tracer.Start(ctx, "UserRepo.Read")
+	defer span.End()
+
 	var user domain.User
 	query := `SELECT id,name,cpf,email,created_at,updated_at FROM users WHERE id = $1`
 	ctx, cancel := context.WithTimeout(ctx, PostgresQueryTimeout)
 	defer cancel()
+
 	err := u.db.QueryRowContext(ctx, query, userID).Scan(&user.ID, &user.Name, &user.CPF, &user.Email, &user.CreatedAt, &user.UpdatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
+		span.SetStatus(codes.Error, err.Error())
 		return domain.User{}, domain.ErrNotFound
 	}
 	if err != nil {
 		translated := translateError(err)
 		if !errors.Is(err, translated) {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			return domain.User{}, translated
 		}
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return domain.User{}, fmt.Errorf("postgres: getByID user: %w", err)
 	}
 	return user, nil
@@ -93,19 +112,28 @@ func (u *UserRepo) Read(ctx context.Context, userID int64) (domain.User, error) 
 //
 // Returns specific domain errors in other cases.
 func (u *UserRepo) ReadByEmail(ctx context.Context, email string) (domain.User, error) {
+	ctx, span := tracer.Start(ctx, "UserRepo.ReadByEmail")
+	defer span.End()
+
 	var user domain.User
 	query := `SELECT id,email,password_hash FROM users WHERE email = $1`
 	ctx, cancel := context.WithTimeout(ctx, PostgresQueryTimeout)
 	defer cancel()
+
 	err := u.db.QueryRowContext(ctx, query, email).Scan(&user.ID, &user.Email, &user.PasswordHash)
 	if errors.Is(err, sql.ErrNoRows) {
+		span.SetStatus(codes.Error, err.Error())
 		return domain.User{}, domain.ErrNotFound
 	}
 	if err != nil {
 		translated := translateError(err)
 		if !errors.Is(err, translated) {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			return domain.User{}, translated
 		}
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return domain.User{}, fmt.Errorf("postgres: getByEmail user: %w", err)
 	}
 	return user, nil
@@ -128,6 +156,9 @@ func (u *UserRepo) ReadByEmail(ctx context.Context, email string) (domain.User, 
 //
 // Returns specific domain errors in other cases.
 func (u *UserRepo) Update(ctx context.Context, user domain.User) error {
+	ctx, span := tracer.Start(ctx, "UserRepo.Update")
+	defer span.End()
+
 	query := `UPDATE users
 		SET
 			name=COALESCE(NULLIF($1,''),name),
@@ -139,19 +170,27 @@ func (u *UserRepo) Update(ctx context.Context, user domain.User) error {
 		`
 	ctx, cancel := context.WithTimeout(ctx, PostgresQueryTimeout)
 	defer cancel()
+
 	res, err := u.db.ExecContext(ctx, query, user.Name, user.CPF, user.Email, user.PasswordHash, user.ID)
 	if err != nil {
 		translated := translateError(err)
 		if !errors.Is(err, translated) {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			return translated
 		}
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return fmt.Errorf("postgres: update users: %w", err)
 	}
 	count, err := res.RowsAffected()
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return fmt.Errorf("postgres: rows affected update users: %w", err)
 	}
 	if count == 0 {
+		span.SetStatus(codes.Error, domain.ErrNotFound.Error())
 		return domain.ErrNotFound
 	}
 	return nil
@@ -165,22 +204,34 @@ func (u *UserRepo) Update(ctx context.Context, user domain.User) error {
 //
 // Returns specific domain errors in other cases.
 func (u *UserRepo) Delete(ctx context.Context, userID int64) error {
+	// Nome do span corrigido
+	ctx, span := tracer.Start(ctx, "UserRepo.Delete")
+	defer span.End()
+
 	query := `DELETE FROM users WHERE id=$1`
 	ctx, cancel := context.WithTimeout(ctx, PostgresQueryTimeout)
 	defer cancel()
+
 	res, err := u.db.ExecContext(ctx, query, userID)
 	if err != nil {
 		translated := translateError(err)
 		if !errors.Is(err, translated) {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			return translated
 		}
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return fmt.Errorf("postgres: delete user: %w", err)
 	}
 	count, err := res.RowsAffected()
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return fmt.Errorf("postgres: rows affected delete users: %w", err)
 	}
 	if count == 0 {
+		span.SetStatus(codes.Error, domain.ErrNotFound.Error())
 		return domain.ErrNotFound
 	}
 	return nil

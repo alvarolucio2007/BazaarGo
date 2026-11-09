@@ -8,7 +8,11 @@ import (
 
 	"github.com/alvarolucio2007/bazaargo/internal/domain"
 	ports "github.com/alvarolucio2007/bazaargo/internal/ports/outbound"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
 )
+
+var tracer = otel.Tracer("bazaargo/internal/service")
 
 // UserService implements the use cases related to user management and authentication.
 type UserService struct {
@@ -36,6 +40,8 @@ type CreateUserPayload struct {
 // Returns [domain.ErrInvalidCPF] or [domain.ErrInvalidEmail] for invalid inputs.
 // Returns an error if password hashing or database insertion fails.
 func (s *UserService) Create(ctx context.Context, payload CreateUserPayload) (domain.User, error) {
+	ctx, span := tracer.Start(ctx, "UserService.CreateUser")
+	defer span.End()
 	user := domain.User{
 		Name:  payload.Name,
 		CPF:   payload.CPF,
@@ -43,19 +49,27 @@ func (s *UserService) Create(ctx context.Context, payload CreateUserPayload) (do
 	}
 
 	if err := user.ValidateCPF(); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return domain.User{}, err
 	}
 	if err := user.ValidateEmail(); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return domain.User{}, err
 	}
 
 	hash, err := s.hasher.Hash(payload.Password)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return domain.User{}, fmt.Errorf("service: hash password: %w", err)
 	}
 	user.PasswordHash = []byte(hash)
 
 	if err := s.repo.Create(ctx, &user); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return domain.User{}, err
 	}
 
@@ -66,14 +80,30 @@ func (s *UserService) Create(ctx context.Context, payload CreateUserPayload) (do
 //
 // Returns [domain.ErrNotFound] if the user does not exist.
 func (s *UserService) Read(ctx context.Context, userID int64) (domain.User, error) {
-	return s.repo.Read(ctx, userID)
+	ctx, span := tracer.Start(ctx, "UserService.ReadUser")
+	defer span.End()
+	user, err := s.repo.Read(ctx, userID)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return domain.User{}, err
+	}
+	return user, nil
 }
 
 // ReadByEmail retrieves a user from the database by their E-mail.
 //
 // Returns [domain.ErrNotFound] if the user does not exist.
 func (s *UserService) ReadByEmail(ctx context.Context, email string) (domain.User, error) {
-	return s.repo.ReadByEmail(ctx, email)
+	ctx, span := tracer.Start(ctx, "UserService.ReadUserByEmail")
+	defer span.End()
+	user, err := s.repo.ReadByEmail(ctx, email)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return domain.User{}, err
+	}
+	return user, nil
 }
 
 // UpdateUserPayload holds the optional fields for updating a user.
@@ -92,6 +122,8 @@ type UpdateUserPayload struct {
 // Returns [domain.ErrInvalidCPF] or [domain.ErrInvalidEmail] if the provided data is invalid.
 // Returns an error if password hashing or the database update fails.
 func (s *UserService) Update(ctx context.Context, payload UpdateUserPayload) error {
+	ctx, span := tracer.Start(ctx, "UserService.UpdateUser")
+	defer span.End()
 	user := domain.User{ID: payload.ID}
 
 	if payload.Name != nil {
@@ -100,24 +132,32 @@ func (s *UserService) Update(ctx context.Context, payload UpdateUserPayload) err
 	if payload.CPF != nil {
 		user.CPF = *payload.CPF
 		if err := user.ValidateCPF(); err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			return err
 		}
 	}
 	if payload.Email != nil {
 		user.Email = *payload.Email
 		if err := user.ValidateEmail(); err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			return err
 		}
 	}
 	if payload.Password != nil {
 		hash, err := s.hasher.Hash(*payload.Password)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			return fmt.Errorf("service: hash password: %w", err)
 		}
 		user.PasswordHash = []byte(hash)
 	}
 
 	if err := s.repo.Update(ctx, user); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return err
 	}
 
@@ -128,7 +168,14 @@ func (s *UserService) Update(ctx context.Context, payload UpdateUserPayload) err
 //
 // Returns [domain.ErrNotFound] if the user does not exist.
 func (s *UserService) Delete(ctx context.Context, userID int64) error {
-	return s.repo.Delete(ctx, userID)
+	ctx, span := tracer.Start(ctx, "UserService.DeleteUser")
+	defer span.End()
+	if err := s.repo.Delete(ctx, userID); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return err
+	}
+	return nil
 }
 
 // VerifyUser handles the authentication flow.
@@ -137,32 +184,39 @@ func (s *UserService) Delete(ctx context.Context, userID int64) error {
 // Returns [domain.ErrInvalidCredentials] if the user is not found or the password does not match.
 // Returns an error if the token generation fails.
 func (s *UserService) VerifyUser(ctx context.Context, email, password string) (string, error) {
+	ctx, span := tracer.Start(ctx, "UserService.VerifyUser")
+	defer span.End()
 	user, err := s.repo.ReadByEmail(ctx, email)
 	if err != nil {
-		// Security: mask ErrNotFound to prevent e-mail enumeration attacks.
 		if errors.Is(err, domain.ErrNotFound) {
+			span.SetStatus(codes.Error, "not found")
 			return "", domain.ErrInvalidCredentials
 		}
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return "", err
 	}
-
 	isSame, err := s.hasher.Check(password, string(user.PasswordHash))
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return "", fmt.Errorf("service: check password: %w", err)
 	}
 	if !isSame {
+		span.SetStatus(codes.Error, "invalid credentials")
 		return "", domain.ErrInvalidCredentials
 	}
-
 	claims, err := ports.NewClaims(email, user.ID, 24*time.Hour)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return "", fmt.Errorf("service: create claims: %w", err)
 	}
-
 	token, err := s.auth.CreateToken(claims)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return "", fmt.Errorf("service: create token: %w", err)
 	}
-
 	return token, nil
 }

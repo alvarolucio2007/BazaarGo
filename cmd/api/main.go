@@ -10,6 +10,7 @@ import (
 	"github.com/alvarolucio2007/bazaargo/internal/adapters/outbound/postgres"
 	"github.com/alvarolucio2007/bazaargo/internal/adapters/outbound/valkey"
 	"github.com/alvarolucio2007/bazaargo/internal/app"
+	"github.com/alvarolucio2007/bazaargo/internal/telemetry"
 )
 
 func main() {
@@ -80,18 +81,32 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger.Info("starting server")
-
 	app, err := app.New(db, mColl, rdb, logger, symmetricKey)
 	if err != nil {
 		logger.Error("main:error while building app", "error", err)
 		os.Exit(1)
 	}
-
 	addr := os.Getenv("SERVER_ADDR")
 	if addr == "" {
 		addr = "127.0.0.1:8080"
 	}
+
+	logger.Info("starting telemetry")
+	tp, err := telemetry.InitTracer(context.Background(), "bazaargo-api")
+	if err != nil {
+		logger.Error("failed to initialize tracer", "error", err)
+		os.Exit(1)
+	}
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := tp.Shutdown(ctx); err != nil {
+			logger.Error("failed to shut down tracer", "error", err)
+		}
+	}()
+	logger.Info("telemetry started sucessfully")
+	logger.Info("starting server")
+
 	if err := app.Handler.Run(app.Handler.Mount(), addr); err != nil {
 		logger.Error("main: error while booting HTTP server", "error", err)
 		os.Exit(1)
