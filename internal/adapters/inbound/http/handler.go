@@ -315,8 +315,6 @@ func (s *ServerHandler) DeleteProductsId(ctx context.Context, request DeleteProd
 }
 
 func (s *ServerHandler) Checkout(ctx context.Context, request CheckoutRequestObject) (CheckoutResponseObject, error) {
-	ctx, span := tracer.Start(ctx, "ServerHandler.Checkout")
-	defer span.End()
 	if len(request.Body.Items) == 0 {
 		return Checkout400JSONResponse{Error: "cart is empty"}, nil
 	}
