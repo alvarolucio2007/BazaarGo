@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/httprate"
+	"github.com/riandyrn/otelchi"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -31,6 +32,7 @@ func (h *ServerHandler) Mount() http.Handler {
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
+	r.Use(otelchi.Middleware("bazaargo-api"))
 	r.Use(httprate.LimitBy(100, time.Minute, func(r *http.Request) (string, error) {
 		return httprate.CanonicalizeIP(middleware.GetClientIP(r.Context())), nil
 	}))
