@@ -6,7 +6,10 @@ import (
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.opentelemetry.io/otel"
 )
+
+var tracer = otel.Tracer("bazaargo/internal/adapters/outbound/mongo")
 
 const MongoQueryTimeout time.Duration = 5 * time.Second
 
