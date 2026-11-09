@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
 	"time"
 
@@ -14,6 +15,16 @@ import (
 )
 
 func main() {
+	lp, err := telemetry.InitLogger(context.Background())
+	if err != nil {
+		panic("failed to initialize logger provider: " + err.Error())
+	}
+	defer func() {
+		if err := lp.Shutdown(context.Background()); err != nil {
+			log.Println("failed to shutdown logger provider:", err)
+		}
+	}()
+
 	logger := logger.NewSlog()
 	logger.Info("starting app")
 	symmetricKey, err := app.GenerateSymmetricKey()
@@ -92,19 +103,31 @@ func main() {
 	}
 
 	logger.Info("starting telemetry")
-	tp, err := telemetry.InitTracer(context.Background(), "bazaargo-api")
+	tp, err := telemetry.InitTracer(context.Background())
 	if err != nil {
 		logger.Error("failed to initialize tracer", "error", err)
 		os.Exit(1)
 	}
 	defer func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		if err := tp.Shutdown(ctx); err != nil {
-			logger.Error("failed to shut down tracer", "error", err)
+		if err := tp.Shutdown(context.Background()); err != nil {
+			logger.Error("failed to shutdown tracer", "error", err)
 		}
 	}()
-	logger.Info("telemetry started sucessfully")
+	mp, err := telemetry.InitMetrics(context.Background())
+	if err != nil {
+		logger.Error("failed to initialize metrics", "error", err)
+		os.Exit(1)
+	}
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := mp.Shutdown(ctx); err != nil {
+			logger.Error("failed to shutdown metrics", "error", err)
+		}
+	}()
+
+	logger.Info("tracer started successfully")
+
 	logger.Info("starting server")
 
 	if err := app.Handler.Run(app.Handler.Mount(), addr); err != nil {
