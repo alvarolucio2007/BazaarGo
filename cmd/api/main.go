@@ -102,7 +102,6 @@ func main() {
 		defer cancel()
 		if err := tp.Shutdown(ctx); err != nil {
 			logger.Error("failed to shut down tracer", "error", err)
-			os.Exit(1)
 		}
 	}()
 	logger.Info("telemetry started sucessfully")
