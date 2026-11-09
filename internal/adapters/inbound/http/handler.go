@@ -50,6 +50,7 @@ func (s *ServerHandler) CreateToken(ctx context.Context, request CreateTokenRequ
 	if err != nil {
 		if errors.Is(err, domain.ErrInvalidCredentials) {
 			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			return CreateToken401JSONResponse{Error: "invalid email or password"}, nil
 		}
 
