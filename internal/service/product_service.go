@@ -205,18 +205,26 @@ func (s *ProductService) Delete(ctx context.Context, productID string) error {
 // It attempts to read a product from the cache first. On a cache miss,
 // it fetches from the database and populates the cache for future requests.
 func (s *ProductService) readProduct(ctx context.Context, productID string) (domain.Product, error) {
+	ctx, span := tracer.Start(ctx, "ProductService.readProduct")
+	defer span.End()
 	product, err := s.cache.Read(ctx, productID)
 	if err == nil {
 		return product, nil
 	}
 	if !errors.Is(err, domain.ErrNotFound) {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to read from cache", "error", err)
 	}
 	product, err = s.repo.ReadByID(ctx, productID)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return domain.Product{}, err
 	}
 	if err := s.cache.Create(ctx, product); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to cache product", "error", err)
 	}
 	return product, nil
