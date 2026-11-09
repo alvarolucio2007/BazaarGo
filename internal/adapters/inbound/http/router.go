@@ -22,7 +22,7 @@ func (h *ServerHandler) Mount() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.ClientIPFromRemoteAddr)
-	r.Use(middleware.Logger)
+	r.Use(RequestLogger(h.logger))
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
@@ -33,7 +33,6 @@ func (h *ServerHandler) Mount() http.Handler {
 		MaxAge:           300,
 	}))
 	r.Use(otelchi.Middleware("bazaargo-api"))
-	r.Use(middleware.Recoverer)
 	r.Use(httprate.LimitBy(100, time.Minute, func(r *http.Request) (string, error) {
 		return httprate.CanonicalizeIP(middleware.GetClientIP(r.Context())), nil
 	}))
