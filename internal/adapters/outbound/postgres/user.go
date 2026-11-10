@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/alvarolucio2007/bazaargo/internal/domain"
 	ports "github.com/alvarolucio2007/bazaargo/internal/ports/outbound"
@@ -235,4 +236,16 @@ func (u *UserRepo) Delete(ctx context.Context, userID int64) error {
 		return domain.ErrNotFound
 	}
 	return nil
+}
+
+// Ping implements [ports.UserRepository].
+// Health checks whether the postgres DB is healthy and properly connected.
+//
+// Returns an error if the [sql.DB.PingContext] health ping fails.
+func (u *UserRepo) Ping(ctx context.Context) error {
+	ctx, span := tracer.Start(ctx, "UserRepo.Ping")
+	defer span.End()
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+	return u.db.PingContext(ctx)
 }

@@ -12,4 +12,6 @@ type ProductRepository interface {
 	ListByName(ctx context.Context, name string) ([]domain.Product, error)
 	Update(ctx context.Context, product domain.Product) error
 	Delete(ctx context.Context, productID string) error
+
+	Ping(ctx context.Context) error
 }
