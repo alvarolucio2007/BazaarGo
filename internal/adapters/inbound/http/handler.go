@@ -31,9 +31,14 @@ type ServerHandler struct {
 	logger         *slog.Logger
 }
 
+// NewServerHandler creates a new instance of ServerHandler with its required dependencies.
+func NewServerHandler(userService *service.UserService, productService *service.ProductService, authenticator ports.Authenticator, health *service.HealthService, logger *slog.Logger) *ServerHandler {
+	return &ServerHandler{userService: userService, productService: productService, authenticator: authenticator, healthService: health, logger: logger}
+}
+
 // HealthCheck implements [StrictServerInterface].
 func (s *ServerHandler) HealthCheck(ctx context.Context, request HealthCheckRequestObject) (HealthCheckResponseObject, error) {
-	ctx, span := tracer.Start(ctx, "ServerHandler.CreateToken")
+	ctx, span := tracer.Start(ctx, "ServerHandler.HealthCheck")
 	defer span.End()
 	pgOk, mongoOk, valkeyOk, err := s.healthService.Check(ctx)
 	if err != nil {
@@ -48,11 +53,6 @@ func (s *ServerHandler) HealthCheck(ctx context.Context, request HealthCheckRequ
 		PostgresHealth: pgOk,
 		ValkeyHealth:   valkeyOk,
 	}, nil
-}
-
-// NewServerHandler creates a new instance of ServerHandler with its required dependencies.
-func NewServerHandler(userService *service.UserService, productService *service.ProductService, authenticator ports.Authenticator, logger *slog.Logger) *ServerHandler {
-	return &ServerHandler{userService: userService, productService: productService, authenticator: authenticator, logger: logger}
 }
 
 // CreateToken implements [StrictServerInterface].
