@@ -24,7 +24,7 @@ type ProductRepo struct {
 
 // NewProductRepo creates a new instance of ProductRepo.
 func NewProductRepo(collection *mongo.Collection, logger *slog.Logger) *ProductRepo {
-	return &ProductRepo{collection, logger}
+	return &ProductRepo{collection: collection, logger: logger}
 }
 
 type productModel struct {
@@ -258,4 +258,16 @@ func (p *ProductRepo) Delete(ctx context.Context, productID string) error {
 	}
 
 	return nil
+}
+
+// Ping implements [ports.ProductRepository].
+// Ping checks whether mongoDB is healthy and properly connected.
+//
+// Returns an error if the [mongo.Client.Ping] health ping fails.
+func (p *ProductRepo) Ping(ctx context.Context) error {
+	ctx, span := tracer.Start(ctx, "ProductRepo.Ping")
+	defer span.End()
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+	return p.collection.Database().Client().Ping(ctx, nil)
 }
