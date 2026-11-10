@@ -1,4 +1,4 @@
-# BazaarGo
+# BaazarGo
 
 <!--toc:start-->
 - [BazaarGo](#bazaargo)
