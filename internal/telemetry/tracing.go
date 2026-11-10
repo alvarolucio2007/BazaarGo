@@ -16,9 +16,9 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
-func InitTracer(ctx context.Context) (*sdktrace.TracerProvider, error) {
+func InitTracer(ctx context.Context, url string) (*sdktrace.TracerProvider, error) {
 	exporter, err := otlptracegrpc.New(ctx,
-		otlptracegrpc.WithEndpoint("localhost:4317"),
+		otlptracegrpc.WithEndpoint(url),
 		otlptracegrpc.WithInsecure(),
 		otlptracegrpc.WithTimeout(15*time.Second),
 	)
@@ -40,10 +40,11 @@ func InitTracer(ctx context.Context) (*sdktrace.TracerProvider, error) {
 
 	return tp, nil
 }
-func InitMetrics(ctx context.Context) (*metric.MeterProvider, error) {
+func InitMetrics(ctx context.Context, url string) (*metric.MeterProvider, error) {
 	exporter, err := otlpmetricgrpc.New(ctx,
-		otlpmetricgrpc.WithEndpoint("localhost:4317"),
+		otlpmetricgrpc.WithEndpoint(url),
 		otlpmetricgrpc.WithInsecure(),
+		otlpmetricgrpc.WithTimeout(15*time.Second),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create OTLP metric exporter: %w", err)
@@ -65,9 +66,9 @@ func InitMetrics(ctx context.Context) (*metric.MeterProvider, error) {
 
 	return mp, nil
 }
-func InitLogger(ctx context.Context) (*log.LoggerProvider, error) {
+func InitLogger(ctx context.Context, url string) (*log.LoggerProvider, error) {
 	exporter, err := otlploghttp.New(ctx,
-		otlploghttp.WithEndpoint("localhost:4318"),
+		otlploghttp.WithEndpoint(url),
 		otlploghttp.WithInsecure(),
 	)
 	if err != nil {
