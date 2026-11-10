@@ -15,7 +15,11 @@ import (
 )
 
 func main() {
-	lp, err := telemetry.InitLogger(context.Background())
+	otelLoggerAddr := os.Getenv("OTEL_LOGGER_ENDPOINT")
+	if otelLoggerAddr == "" {
+		otelLoggerAddr = "localhost:4318"
+	}
+	lp, err := telemetry.InitLogger(context.Background(), otelLoggerAddr)
 	if err != nil {
 		panic("failed to initialize logger provider: " + err.Error())
 	}
@@ -103,7 +107,11 @@ func main() {
 	}
 
 	logger.Info("starting telemetry")
-	tp, err := telemetry.InitTracer(context.Background())
+	otelAddr := os.Getenv("OTEL_ENDPOINT")
+	if otelAddr == "" {
+		otelAddr = "localhost:4317"
+	}
+	tp, err := telemetry.InitTracer(context.Background(), otelAddr)
 	if err != nil {
 		logger.Error("failed to initialize tracer", "error", err)
 		os.Exit(1)
@@ -113,7 +121,7 @@ func main() {
 			logger.Error("failed to shutdown tracer", "error", err)
 		}
 	}()
-	mp, err := telemetry.InitMetrics(context.Background())
+	mp, err := telemetry.InitMetrics(context.Background(), otelAddr)
 	if err != nil {
 		logger.Error("failed to initialize metrics", "error", err)
 		os.Exit(1)
