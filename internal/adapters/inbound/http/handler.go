@@ -37,6 +37,16 @@ func NewServerHandler(userService *service.UserService, productService *service.
 }
 
 // HealthCheck implements [StrictServerInterface].
+//
+// It verifies the health of the application's core dependencies (PostgreSQL,
+// MongoDB, and Valkey) by delegating the check to [service.HealthService].
+//
+// Returns a 500 Internal Server Error if any of the dependencies are
+// unreachable, including the individual status of each service in the response body.
+// Returns a 200 OK if all dependencies are healthy.
+//
+// This endpoint is critical for the Traefik load balancer to determine
+// if the container should remain in the routing rotation.
 func (s *ServerHandler) HealthCheck(ctx context.Context, request HealthCheckRequestObject) (HealthCheckResponseObject, error) {
 	ctx, span := tracer.Start(ctx, "ServerHandler.HealthCheck")
 	defer span.End()
