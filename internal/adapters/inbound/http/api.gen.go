@@ -50,6 +50,13 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
+// HealthResponse defines model for HealthResponse.
+type HealthResponse struct {
+	MongoHealth    bool `json:"mongo_health"`
+	PostgresHealth bool `json:"postgres_health"`
+	ValkeyHealth   bool `json:"valkey_health"`
+}
+
 // ListProductResponse defines model for ListProductResponse.
 type ListProductResponse = []interface{}
 
@@ -134,6 +141,9 @@ type ServerInterface interface {
 	// (POST /checkout)
 	Checkout(w http.ResponseWriter, r *http.Request)
 
+	// (GET /health)
+	HealthCheck(w http.ResponseWriter, r *http.Request)
+
 	// (POST /products)
 	CreateProduct(w http.ResponseWriter, r *http.Request)
 
@@ -169,6 +179,11 @@ func (_ Unimplemented) CreateToken(w http.ResponseWriter, r *http.Request) {
 
 // (POST /checkout)
 func (_ Unimplemented) Checkout(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /health)
+func (_ Unimplemented) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -244,6 +259,20 @@ func (siw *ServerInterfaceWrapper) Checkout(w http.ResponseWriter, r *http.Reque
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.Checkout(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// HealthCheck operation middleware
+func (siw *ServerInterfaceWrapper) HealthCheck(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.HealthCheck(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -558,6 +587,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/health", wrapper.HealthCheck)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/auth/register", wrapper.RegisterUser)
 	})
 	r.Group(func(r chi.Router) {
@@ -750,6 +782,41 @@ func (response Checkout400JSONResponse) VisitCheckoutResponse(w http.ResponseWri
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type HealthCheckRequestObject struct {
+}
+
+type HealthCheckResponseObject interface {
+	VisitHealthCheckResponse(w http.ResponseWriter) error
+}
+
+type HealthCheck200JSONResponse HealthResponse
+
+func (response HealthCheck200JSONResponse) VisitHealthCheckResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type HealthCheck500JSONResponse HealthResponse
+
+func (response HealthCheck500JSONResponse) VisitHealthCheckResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 	_, err := buf.WriteTo(w)
 	return err
 }
@@ -1098,6 +1165,9 @@ type StrictServerInterface interface {
 	// (POST /checkout)
 	Checkout(ctx context.Context, request CheckoutRequestObject) (CheckoutResponseObject, error)
 
+	// (GET /health)
+	HealthCheck(ctx context.Context, request HealthCheckRequestObject) (HealthCheckResponseObject, error)
+
 	// (POST /products)
 	CreateProduct(ctx context.Context, request CreateProductRequestObject) (CreateProductResponseObject, error)
 
@@ -1242,6 +1312,30 @@ func (sh *strictHandler) Checkout(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(CheckoutResponseObject); ok {
 		if err := validResponse.VisitCheckoutResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// HealthCheck operation middleware
+func (sh *strictHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
+	var request HealthCheckRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.HealthCheck(ctx, request.(HealthCheckRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "HealthCheck")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(HealthCheckResponseObject); ok {
+		if err := validResponse.VisitHealthCheckResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -1423,25 +1517,26 @@ func (sh *strictHandler) UpdateProduct(w http.ResponseWriter, r *http.Request, i
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
