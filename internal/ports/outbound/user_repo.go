@@ -12,4 +12,6 @@ type UserRepository interface {
 	ReadByEmail(ctx context.Context, email string) (domain.User, error)
 	Update(ctx context.Context, user domain.User) error
 	Delete(ctx context.Context, userID int64) error
+
+	Ping(ctx context.Context) error
 }
