@@ -74,6 +74,7 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+
   otel-lgtm:
     image: grafana/otel-lgtm:0.40.0
     container_name: bazaar-otel-lgtm
@@ -86,10 +87,11 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512m
+          memory: 1.5g
           cpus: "1.0"
         reservations:
           memory: 256m
+
   traefik:
     image: traefik:v3.6
     container_name: bazaar-traefik
@@ -99,8 +101,8 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
     ports:
-      - "80:80"      # Porta do Tráfego
-      - "8080:8080"  # Dashboard do Traefik
+      - "80:80"
+      - "8080:8080"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
