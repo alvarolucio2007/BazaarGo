@@ -5,6 +5,7 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/alvarolucio2007/bazaargo/internal/domain"
 	ports "github.com/alvarolucio2007/bazaargo/internal/ports/outbound"
@@ -105,4 +106,17 @@ func (p *ProductCache) Delete(ctx context.Context, itemID string) error {
 	}
 
 	return nil
+}
+
+// Ping implements [ports.Cache].
+// Ping checks whether the valkey cache is healthy and properly connected.
+//
+// Returns an error if the [redis.Client.Ping] health ping fails.
+func (p *ProductCache) Ping(ctx context.Context) error {
+	ctx, span := tracer.Start(ctx, "ProductCache.Ping")
+	defer span.End()
+
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+	return p.rdb.Ping(ctx).Err()
 }
