@@ -27,7 +27,27 @@ type ServerHandler struct {
 	userService    *service.UserService
 	productService *service.ProductService
 	authenticator  ports.Authenticator
+	healthService  *service.HealthService
 	logger         *slog.Logger
+}
+
+// HealthCheck implements [StrictServerInterface].
+func (s *ServerHandler) HealthCheck(ctx context.Context, request HealthCheckRequestObject) (HealthCheckResponseObject, error) {
+	ctx, span := tracer.Start(ctx, "ServerHandler.CreateToken")
+	defer span.End()
+	pgOk, mongoOk, valkeyOk, err := s.healthService.Check(ctx)
+	if err != nil {
+		return HealthCheck500JSONResponse{
+			MongoHealth:    mongoOk,
+			PostgresHealth: pgOk,
+			ValkeyHealth:   valkeyOk,
+		}, nil
+	}
+	return HealthCheck200JSONResponse{
+		MongoHealth:    mongoOk,
+		PostgresHealth: pgOk,
+		ValkeyHealth:   valkeyOk,
+	}, nil
 }
 
 // NewServerHandler creates a new instance of ServerHandler with its required dependencies.
