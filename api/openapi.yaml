@@ -3,6 +3,24 @@ info:
   version: 1.0.0
   title: BazaarGo API
 paths:
+  /health:
+    get:
+      operationId: HealthCheck
+      responses:
+        '200':
+          description: Healthy API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '500':
+          description: Not Healthy API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+      deprecated: false
   /auth/register:
     post:
       operationId: RegisterUser
@@ -382,3 +400,10 @@ components:
     ListProductResponse:
       type: array
       items: {$ref:"#/components/schemas/ProductResponse"}
+    HealthResponse:
+      type: object
+      required: [postgres_health,mongo_health,valkey_health]
+      properties:
+        postgres_health: {type: boolean}
+        mongo_health: {type: boolean}
+        valkey_health: {type: boolean}
