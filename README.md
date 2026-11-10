@@ -243,7 +243,7 @@ Em vez de apenas "prints no terminal", a API foi instrumentada com **OpenTelemet
 
 ### Integração com WhatsApp
 
-Para manter o escopo enxuto e sem dependência de gateways de pagamento complexos, o processo de finalização de compra (Checkout) monta uma string estruturada com os itens do carrinho (`strings.Builder`), aplica `url.QueryEscape` e gera um link `wa.me`. É a solução mais direta para e-commerces locais.
+Para manter o escopo enxuto e sem dependência de gateways de pagamento complexos, o processo de finalização de compra (Checkout) monta uma string estruturada com os itens do carrinho (`fmt.Fprintf`), aplica `url.QueryEscape` e gera um link `wa.me`. É a solução mais direta para e-commerces locais.
 
 ---
 
