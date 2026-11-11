@@ -3,8 +3,7 @@ import streamlit as st
 
 # Configuração da página
 st.set_page_config(
-    page_title="BaazerGo",
-    page_icon="🛍️",
+    page_title="BaazarGo",
     layout="wide"
 )
 
