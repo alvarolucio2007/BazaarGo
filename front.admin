@@ -1,0 +1,111 @@
+import streamlit as st
+import pandas as pd
+
+st.set_page_config(
+page_title="BaazerGo Admin",
+page_icon="nn",
+layout="wide"
+)
+# Cores do BaazerGo
+AZUL = "#263B63"
+ROSA = "#E8BFA8"
+BEGE = "#F8F5EF"
+
+st.title("nn BaazerGo | Administração")
+st.caption("Painel de controle da loja")
+
+pagina = st.sidebar.radio(
+"Menu",
+[
+"Dashboard",
+"Produtos",
+"Pedidos",
+"Clientes",
+"Categorias",
+"Relatórios",
+"Configurações"
+]
+)
+st.sidebar.markdown("---")
+st.sidebar.info("Área administrativa")
+
+if pagina == "Dashboard":
+st.header("Dashboard")
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("Faturamento", "R$ 0,00")
+col2.metric("Pedidos", "0")
+col3.metric("Produtos", "0")
+col4.metric("Estoque baixo", "0")
+st.subheader("Resumo da loja")
+st.info("Os indicadores serão preenchidos quando o painel estiver conectado à API.")
+st.subheader("Últimos pedidos")
+pedidos = pd.DataFrame(
+columns=["Pedido", "Cliente", "Data", "Valor", "Status"]
+)
+st.dataframe(pedidos, use_container_width=True)
+
+elif pagina == "Produtos":
+st.header("Gerenciamento de produtos")
+with st.form("form_produto"):
+nome = st.text_input("Nome do produto")
+descricao = st.text_area("Descrição")
+preco = st.number_input("Preço (R$)", min_value=0.0, step=1.0)
+estoque = st.number_input("Estoque", min_value=0, step=1)
+categoria = st.text_input("ID da categoria")
+enviar = st.form_submit_button("Cadastrar produto")
+if enviar:
+if nome.strip():
+st.success(
+"Formulário preenchido! "
+"A conexão com a API será adicionada nesta etapa."
+)
+else:
+st.warning("Digite o nome do produto.")
+st.subheader("Lista de produtos")
+st.dataframe(
+pd.DataFrame(
+columns=["ID", "Nome", "Preço", "Estoque", "Categoria"]
+),
+use_container_width=True
+)
+
+elif pagina == "Pedidos":
+st.header("Gerenciamento de pedidos")
+st.dataframe(
+pd.DataFrame(
+columns=["Pedido", "Cliente", "Data", "Valor", "Status"]
+),
+use_container_width=True
+)
+st.caption("Os pedidos aparecerão aqui quando houver dados disponíveis.")
+
+elif pagina == "Clientes":
+st.header("Clientes")
+st.dataframe(
+pd.DataFrame(columns=["ID", "Nome", "E-mail", "Pedidos"]),
+use_container_width=True
+)
+
+elif pagina == "Categorias":
+st.header("Categorias")
+nome_categoria = st.text_input("Nome da categoria")
+if st.button("Criar categoria"):
+if nome_categoria.strip():
+st.success(f"Categoria '{nome_categoria}' preenchida.")
+else:
+st.warning("Digite o nome da categoria.")
+st.dataframe(
+pd.DataFrame(columns=["ID", "Nome"]),
+use_container_width=True
+)
+
+elif pagina == "Relatórios":
+st.header("Relatórios")
+st.info("Gráficos de vendas e produtos mais vendidos poderão ser adicionados aqui.")
+
+elif pagina == "Configurações":
+st.header("Configurações da loja")
+nome_loja = st.text_input("Nome da loja", value="BaazerGo")
+email = st.text_input("E-mail administrativo")
+st.button("Salvar configurações")
+st.caption("Este exemplo ainda não salva as configurações em banco de dados.")
