@@ -1,4 +1,3 @@
-
 import streamlit as st
 
 # Configuração da página
