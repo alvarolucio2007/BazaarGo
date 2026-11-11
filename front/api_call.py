@@ -21,17 +21,12 @@ class BazaarGoClient:
             headers["X-Client-ID"] = client_id
         return headers
 
-    # ==========================================
-    # HEALTH CHECK
-    # ==========================================
+ 
     def health_check(self) -> requests.Response:
         """Verifica a saúde da API (Postgres, Mongo, Valkey)."""
         url = f"{self.base_url}/health"
         return self.session.get(url, headers=self._get_headers())
 
-    # ==========================================
-    # AUTENTICAÇÃO E USUÁRIOS
-    # ==========================================
     def register_user(self, name: str, email: str, password: str, cpf: str) -> requests.Response:
         """Registra um novo usuário."""
         url = f"{self.base_url}/auth/register"
@@ -56,9 +51,7 @@ class BazaarGoClient:
             self.token = data.get("token")
         return self.token
 
-    # ==========================================
-    # PRODUTOS
-    # ==========================================
+
     def create_product(self, name: str, description: str, price: float, stock: int, category_id: str, specs: dict[Any, Any]) -> requests.Response:
         """Cria um novo produto (Requer autenticação)."""
         url = f"{self.base_url}/products"
@@ -107,9 +100,7 @@ class BazaarGoClient:
         headers = self._get_headers(client_id=client_id)
         return self.session.get(url, headers=headers)
 
-    # ==========================================
-    # CHECKOUT
-    # ==========================================
+
     def checkout(self, phone: str, items: list[dict[str, Any]]) -> requests.Response:
         """Realiza o checkout gerando um link do WhatsApp."""
         url = f"{self.base_url}/checkout"
@@ -120,7 +111,7 @@ class BazaarGoClient:
         return self.session.post(url, json=payload, headers=self._get_headers())
 
 
-# Exemplo de Uso:
+
 if __name__ == "__main__":
     client = BazaarGoClient("https://api.bazaargo.com")
 
