@@ -19,16 +19,9 @@ pagina = st.sidebar.radio(
     [
         "Dashboard",
         "Produtos",
-        "Pedidos",
         "Clientes",
-        "Categorias",
-        "Relatórios",
-        "Configurações"
     ]
 )
-
-st.sidebar.markdown("---")
-st.sidebar.write("Administrador")
 
 # DASHBOARD
 if pagina == "Dashboard":
@@ -93,24 +86,6 @@ elif pagina == "Produtos":
         use_container_width=True
     )
 
-# PEDIDOS
-elif pagina == "Pedidos":
-
-    st.header("Pedidos")
-
-    st.dataframe(
-        pd.DataFrame(
-            columns=[
-                "Pedido",
-                "Cliente",
-                "Data",
-                "Valor",
-                "Status"
-            ]
-        ),
-        use_container_width=True
-    )
-
 # CLIENTES
 elif pagina == "Clientes":
 
@@ -127,46 +102,3 @@ elif pagina == "Clientes":
         ),
         use_container_width=True
     )
-
-# CATEGORIAS
-elif pagina == "Categorias":
-
-    st.header("Categorias")
-
-    categoria = st.text_input("Nome da categoria")
-
-    if st.button("Criar categoria"):
-        if categoria.strip():
-            st.success("Categoria criada!")
-        else:
-            st.warning("Informe o nome.")
-
-    st.dataframe(
-        pd.DataFrame(
-            columns=["ID", "Nome"]
-        ),
-        use_container_width=True
-    )
-
-# RELATÓRIOS
-elif pagina == "Relatórios":
-
-    st.header("Relatórios")
-
-    st.info("Relatórios de vendas e produtos.")
-
-# CONFIGURAÇÕES
-elif pagina == "Configurações":
-
-    st.header("Configurações")
-
-    nome = st.text_input(
-        "Nome da loja",
-        value="BaazerGo"
-    )
-
-    email = st.text_input("E-mail administrativo")
-
-    if st.button("Salvar"):
-        st.success("Configurações preenchidas!")
-
