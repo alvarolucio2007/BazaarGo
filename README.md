@@ -41,7 +41,7 @@ O sistema atende a dois módulos principais:
 1. **Módulo Administrativo:** Onde administradores autenticados cadastram e gerenciam o catálogo de produtos.
 2. **Módulo Cliente:** Uma vitrine rápida que exibe os produtos, registra o histórico de "vistos recentemente" e permite fechar o pedido gerando uma mensagem formatada no WhatsApp.
 
-> **Nota de transparência** : Este projeto utilizou ferramentas de Inteligência Artificial (IA) como assistente de desenvolvimento durante todo o processo. A IA foi utilizada para acelerar a construção das interfaces (SvelteKit e Streamlit), mas também atuou diretamente como um "copiloto" técnico: auxiliando na configuração da infraestrutura (Docker, Traefik, stack LGTM), instrumentação da observabilidade (OpenTelemetry), resolução de bugs complexos e na discussão de tomadas de decisão sobre padrões de projeto e arquitetura.
+> **Nota de transparência** : Este projeto utilizou ferramentas de Inteligência Artificial (IA) como assistente de desenvolvimento durante todo o processo. A IA foi utilizada para acelerar a construção das interfaces visuais, mas também atuou diretamente como um "copiloto" técnico: auxiliando na configuração da infraestrutura (Docker, Traefik, stack LGTM), instrumentação da observabilidade (OpenTelemetry), resolução de bugs complexos e na discussão de tomadas de decisão sobre padrões de projeto e arquitetura.
 
 ---
 
