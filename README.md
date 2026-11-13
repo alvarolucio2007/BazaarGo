@@ -78,7 +78,7 @@ Além dos requisitos mínimos, o projeto foi construído seguindo práticas adot
 | Coleta e Visualização | Grafana, Tempo, Loki, Prometheus, Pyroscope |
 | Instrumentação | OpenTelemetry (SDK Go + OTLP gRPC/HTTP) |
 | **Frontend & UI** | |
-| Vitrine (Cliente) | SvelteKit (Svelte 5) + Tailwind CSS |
+| Vitrine (Cliente) | Python + Streamlit |
 | Painel Admin | Python + Streamlit |
 | **Infraestrutura** | |
 | Proxy Reverso | Traefik v3 |
@@ -93,25 +93,26 @@ O projeto adota uma arquitetura desacoplada, onde o backend segue os princípios
 ```mermaid
 flowchart TD
     %% Atores
-    User([👤 Cliente])
-    Admin([🔐 Administrador])
+    User([Cliente])
+    Admin([Administrador])
 
     %% Proxy
-    User --> Traefik[🚦 Traefik Reverse Proxy]
+    User --> Traefik[Traefik Reverse Proxy]
     Admin --> Traefik
 
     %% Frontends
-    Traefik --> Streamlit[💻 Vitrine Streamlit]
-    Traefik --> Vitrine[🐍 Painel Admin Streamlit]
+    Traefik --> Streamlit[Vitrine Streamlit]
+    Traefik --> Vitrine[Painel Admin Streamlit]
+    Traefik --> API
 
     %% Backend
-    Vitrine --> API[🐹 Go API - Hexagonal]
+    Vitrine --> API[Go API - Hexagonal]
     Streamlit --> API
 
     %% Bancos de Dados (Persistência Poliglota)
-    API --> PG[(🐘 PostgreSQL)]
-    API --> Mongo[(🍃 MongoDB)]
-    API --> Valkey[(⚡ Valkey/Redis)]
+    API --> PG[(PostgreSQL)]
+    API --> Mongo[(MongoDB)]
+    API --> Valkey[(Valkey/Redis)]
 
     %% Estilização
     classDef proxy fill:#f9f,stroke:#333,stroke-width:2px,color:#000;
