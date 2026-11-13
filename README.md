@@ -102,7 +102,7 @@ flowchart TD
 
     %% Frontends
     Traefik --> Streamlit[💻 Vitrine Streamlit]
-    Traefik --> Streamlit[🐍 Painel Admin Streamlit]
+    Traefik --> Vitrine[🐍 Painel Admin Streamlit]
 
     %% Backend
     Vitrine --> API[🐹 Go API - Hexagonal]
@@ -114,7 +114,7 @@ flowchart TD
     API --> Valkey[(⚡ Valkey/Redis)]
 
     %% Estilização
-classDef proxy fill:#f9f,stroke:#333,stroke-width:2px,color:#000;
+    classDef proxy fill:#f9f,stroke:#333,stroke-width:2px,color:#000;
     classDef frontend fill:#bbf,stroke:#333,stroke-width:2px,color:#000;
     classDef backend fill:#fbb,stroke:#333,stroke-width:2px,color:#000;
     classDef database fill:#bfb,stroke:#333,stroke-width:2px,color:#000;
