@@ -114,10 +114,10 @@ flowchart TD
     API --> Valkey[(⚡ Valkey/Redis)]
 
     %% Estilização
-    classDef proxy fill:#f9f,stroke:#333,stroke-width:2px;
-    classDef frontend fill:#bbf,stroke:#333,stroke-width:2px;
-    classDef backend fill:#fbb,stroke:#333,stroke-width:2px;
-    classDef database fill:#bfb,stroke:#333,stroke-width:2px;
+classDef proxy fill:#f9f,stroke:#333,stroke-width:2px,color:#000;
+    classDef frontend fill:#bbf,stroke:#333,stroke-width:2px,color:#000;
+    classDef backend fill:#fbb,stroke:#333,stroke-width:2px,color:#000;
+    classDef database fill:#bfb,stroke:#333,stroke-width:2px,color:#000;
     
     class Traefik proxy;
     class Vitrine,Streamlit frontend;
