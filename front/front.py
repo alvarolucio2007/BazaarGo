@@ -7,8 +7,8 @@ st.set_page_config(
 )
 
 # Cores da loja
-AZUL = "#263B63"
-ROSE = "#E8BFA8"
+AZUL = "#2995bc"
+ROSE = "#8BFA8"
 FUNDO = "#F8F5EF"
 
 # Estilo visual
@@ -44,20 +44,17 @@ p, label {{
     font-size: 17px;
 }}
 
-.stButton > button {{
-    background-color: {AZUL};
-    color: white;
-    border-radius: 8px;
-    border: none;
-}}
-
-.stButton > button:hover {{
-    background-color: {ROSE};
-    color: {AZUL};
-}}
-</style>
 """, unsafe_allow_html=True)
 
+pagina = st.sidebar.radio(
+    "Navegação",
+    [
+        "Produtos",
+        "Carrinho"
+    ]
+)
+if pagina=="Carrinho":
+    st.write("teste")
 # Cabeçalho
 st.markdown("""
 <div class="topo">
@@ -74,24 +71,8 @@ pesquisa = st.text_input(
     placeholder="Digite o nome de um produto..."
 )
 
-# Categorias
-st.subheader("Explore nossas categorias")
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.button(" Moda", use_container_width=True)
-
-with col2:
-    st.button(" Tecnologia", use_container_width=True)
-
-with col3:
-    st.button(" Casa", use_container_width=True)
-
-st.divider()
-
 # Área de produtos
-st.subheader("Produtos em destaque")
+st.markdown('<h3 style="color: black;">Produtos em destaque</h3>', unsafe_allow_html=True)
 
 st.info("Em breve, seus produtos aparecerão aqui!")
 
