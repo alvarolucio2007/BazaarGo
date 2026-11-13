@@ -90,29 +90,39 @@ Além dos requisitos mínimos, o projeto foi construído seguindo práticas adot
 
 O projeto adota uma arquitetura desacoplada, onde o backend segue os princípios da **Arquitetura Hexagonal** e os frontends atuam como consumidores puros da API REST.
 
-```
-                        ┌─────────────────────────────┐
-                        │           Traefik           │
-                        │ (Reverse Proxy / Roteamento)│
-                        └──────┬───────┬──────┬───────┘
-                               │       │      │
-                        ┌──────▼──┐    │   ┌──▼──────┐
-                        │SvelteKit│    │   │Streamlit│
-                        │(Vitrine)│    │   │(Admin)  │
-                        └────┬────┘    │   └────┬────┘
-                             │         │        │
-                             └─────┐   │   ┌────┘
-                                   ▼  ▼   ▼
-                               ┌─────────────┐
-                               │   Go API    │
-                               │ (Hexagonal) │
-                               └──────┬──────┘
-                   ┌──────────────────┼──────────────────┐
-                   │                  │                  │
-            ┌──────▼──────┐    ┌──────▼──────┐    ┌──────▼──────┐
-            │ PostgreSQL  │    │   MongoDB   │    │   Valkey    │
-            │(Auth/Admin) │    │ (Produtos)  │    │   (Cache)   │
-            └─────────────┘    └─────────────┘    └─────────────┘
+```mermaid
+flowchart TD
+    %% Atores
+    User([👤 Cliente])
+    Admin([🔐 Administrador])
+
+    %% Proxy
+    User --> Traefik[🚦 Traefik Reverse Proxy]
+    Admin --> Traefik
+
+    %% Frontends
+    Traefik --> Streamlit[💻 Vitrine Streamlit]
+    Traefik --> Streamlit[🐍 Painel Admin Streamlit]
+
+    %% Backend
+    Vitrine --> API[🐹 Go API - Hexagonal]
+    Streamlit --> API
+
+    %% Bancos de Dados (Persistência Poliglota)
+    API --> PG[(🐘 PostgreSQL)]
+    API --> Mongo[(🍃 MongoDB)]
+    API --> Valkey[(⚡ Valkey/Redis)]
+
+    %% Estilização
+    classDef proxy fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef frontend fill:#bbf,stroke:#333,stroke-width:2px;
+    classDef backend fill:#fbb,stroke:#333,stroke-width:2px;
+    classDef database fill:#bfb,stroke:#333,stroke-width:2px;
+    
+    class Traefik proxy;
+    class Vitrine,Streamlit frontend;
+    class API backend;
+    class PG,Mongo,Valkey database;
 ```
 
 ### Estrutura do projeto
