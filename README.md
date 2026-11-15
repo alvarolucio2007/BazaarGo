@@ -71,7 +71,7 @@ Além dos requisitos mínimos, o projeto foi construído seguindo práticas adot
 | Autenticação | PASETO v4 (aidantwoods) |
 | Hash de senha | Argon2id |
 | **Bancos de Dados** | |
-| Relacional (Auth) | PostgreSQL 18 (Supabase) |
+| Relacional (Auth) | PostgreSQL 18 |
 | Documentos (Produtos) | MongoDB 9 |
 | Cache/Listas (Histórico) | Valkey 9 (Redis) |
 | **Observabilidade** | |
