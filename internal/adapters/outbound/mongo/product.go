@@ -192,7 +192,12 @@ func (p *ProductRepo) ListAll(ctx context.Context) ([]domain.Product, error) {
 		span.SetStatus(codes.Error, err.Error())
 		return nil, fmt.Errorf("mongo: find all products: %w", err)
 	}
-	defer cursor.Close(ctx)
+	defer func() {
+		if err := cursor.Close(ctx); err != nil {
+			span.RecordError(err)
+			p.logger.ErrorContext(ctx, "error while closing cursor", "error", err)
+		}
+	}()
 
 	var models []productModel
 	if err := cursor.All(ctx, &models); err != nil {
