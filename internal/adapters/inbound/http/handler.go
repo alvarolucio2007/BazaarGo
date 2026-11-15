@@ -249,6 +249,31 @@ func (s *ServerHandler) GetProductsSearchName(ctx context.Context, request GetPr
 	return GetProductsSearchName200JSONResponse{response}, nil
 }
 
+// ListProducts implements [StrictServerInterface].
+// It retrieves all products from the catalog.
+func (s *ServerHandler) ListProducts(ctx context.Context, request ListProductsRequestObject) (ListProductsResponseObject, error) {
+	products, err := s.productService.ListAll(ctx)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "unexpected error listing products", "error", err)
+		return nil, err
+	}
+
+	response := make(ListProductResponse, 0, len(products))
+	for _, p := range products {
+		response = append(response, ProductResponse{
+			Id:          p.ID,
+			Name:        p.Name,
+			Description: p.Description,
+			Price:       float32(p.Price),
+			Stock:       p.Stock,
+			CategoryId:  p.CategoryID,
+			Specs:       p.Specs,
+		})
+	}
+
+	return ListProducts200JSONResponse(response), nil
+}
+
 // GetRecentProducts implements [StrictServerInterface].
 func (s *ServerHandler) GetRecentProducts(ctx context.Context, request GetRecentProductsRequestObject) (GetRecentProductsResponseObject, error) {
 	ctx, span := tracer.Start(ctx, "ServerHandler.GetRecentProducts")
