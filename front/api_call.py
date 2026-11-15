@@ -21,7 +21,7 @@ class BazaarGoClient:
             headers["X-Client-ID"] = client_id
         return headers
 
- 
+
     def health_check(self) -> requests.Response:
         """Verifica a saúde da API (Postgres, Mongo, Valkey)."""
         url = f"{self.base_url}/health"
@@ -109,19 +109,7 @@ class BazaarGoClient:
             "items": items
         }
         return self.session.post(url, json=payload, headers=self._get_headers())
-
-
-
-if __name__ == "__main__":
-    client = BazaarGoClient("https://api.bazaargo.com")
-
-    # 1. Health Check
-    health = client.health_check()
-    print("Health:", health.json())
-
-    # 2. Login para obter token
-    # client.create_token("user@email.com", "senhaSegura123")
-
-    # 3. Buscar produto com X-Client-ID obrigatório
-    # response = client.get_product_by_id("64a7b2c1e4b0000000000001", client_id="meu-cliente-id")
-    # print(response.json())
+    def get_all_products(self) -> requests.Response:
+            """Lista todos os produtos (Requer autenticação)."""
+            url = f"{self.base_url}/products"
+            return self.session.get(url, headers=self._get_headers())
