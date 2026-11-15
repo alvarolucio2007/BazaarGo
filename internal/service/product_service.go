@@ -130,6 +130,14 @@ func (s *ProductService) ListByName(ctx context.Context, name string) ([]domain.
 	return products, nil
 }
 
+// ListAll retrieves all products from the catalog.
+func (s *ProductService) ListAll(ctx context.Context) ([]domain.Product, error) {
+	ctx, span := tracer.Start(ctx, "ProductService.ListAll")
+	defer span.End()
+
+	return s.repo.ListAll(ctx)
+}
+
 // UpdateProductPayload holds the optional fields for updating a product.
 // A nil pointer indicates that the field should not be modified.
 type UpdateProductPayload struct {
