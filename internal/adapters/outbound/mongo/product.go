@@ -181,6 +181,33 @@ func (p *ProductRepo) ListByName(ctx context.Context, name string) ([]domain.Pro
 	return products, nil
 }
 
+// ListAll implements [ports.ProductRepository].
+func (p *ProductRepo) ListAll(ctx context.Context) ([]domain.Product, error) {
+	ctx, span := tracer.Start(ctx, "ProductRepo.ListAll")
+	defer span.End()
+
+	cursor, err := p.collection.Find(ctx, bson.M{})
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, fmt.Errorf("mongo: find all products: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var models []productModel
+	if err := cursor.All(ctx, &models); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return nil, fmt.Errorf("mongo: decode all products: %w", err)
+	}
+
+	products := make([]domain.Product, 0, len(models))
+	for _, model := range models {
+		products = append(products, toDomain(&model))
+	}
+	return products, nil
+}
+
 // Update implements [ports.ProductRepository].
 // It updates an existing product in the database based on its ID.
 //
