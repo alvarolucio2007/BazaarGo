@@ -6,6 +6,7 @@ st.set_page_config(
     layout="wide"
 )
 
+
 # Cores da loja
 AZUL = "#2995bc"
 ROSE = "#8BFA8"
