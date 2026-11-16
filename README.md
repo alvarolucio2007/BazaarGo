@@ -1,5 +1,4 @@
 # BaazarGo
-# Teste
 
 <!--toc:start-->
 - [BazaarGo](#bazaargo)
