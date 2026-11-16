@@ -265,3 +265,33 @@ func TestUserRepo_Delete(t *testing.T) {
 		})
 	}
 }
+
+func TestUserRepo_Ping(t *testing.T) {
+	tests := []struct {
+		name string // description of this test case
+		// Named input parameters for receiver constructor.
+		db      *sql.DB
+		wantErr bool
+	}{
+		{
+			name:    "should ping valid DB",
+			db:      testDB,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := postgres.NewUserRepo(tt.db)
+			gotErr := u.Ping(t.Context())
+			if gotErr != nil {
+				if !tt.wantErr {
+					t.Errorf("Ping() failed: %v", gotErr)
+				}
+				return
+			}
+			if tt.wantErr {
+				t.Fatal("Ping() succeeded unexpectedly")
+			}
+		})
+	}
+}
