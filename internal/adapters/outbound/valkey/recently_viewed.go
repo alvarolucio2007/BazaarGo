@@ -26,6 +26,9 @@ func NewRecentlyViewedRepo(rdb *redis.Client) *RecentlyViewedRepo {
 func (r *RecentlyViewedRepo) Add(ctx context.Context, clientID string, productID string) error {
 	ctx, span := tracer.Start(ctx, "RecentlyViewedCache.Add")
 	defer span.End()
+	if clientID == "" || productID == "" {
+		return ErrEmptyParams
+	}
 	key := fmt.Sprintf("recent:%s", clientID)
 	ctx, cancel := context.WithTimeout(ctx, CacheQueryTimeout)
 	defer cancel()
@@ -48,6 +51,9 @@ func (r *RecentlyViewedRepo) Add(ctx context.Context, clientID string, productID
 func (r *RecentlyViewedRepo) Get(ctx context.Context, clientID string) ([]string, error) {
 	ctx, span := tracer.Start(ctx, "RecentlyViewedCache.Get")
 	defer span.End()
+	if clientID == "" {
+		return nil, ErrEmptyParams
+	}
 	key := fmt.Sprintf("recent:%s", clientID)
 	ctx, cancel := context.WithTimeout(ctx, CacheQueryTimeout)
 	defer cancel()
