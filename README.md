@@ -1,7 +1,7 @@
 # BaazarGo
 
 <!--toc:start-->
-- [BazaarGo](#bazaargo)
+- [BaazarGo](#baazargo)
   - [Visão geral](#visão-geral)
   - [Diferenciais do projeto](#diferenciais-do-projeto)
   - [Stack de tecnologias](#stack-de-tecnologias)
@@ -11,10 +11,9 @@
     - [SGBDs Utilizados](#sgbds-utilizados)
     - [Modelagem de Dados](#modelagem-de-dados)
   - [Endpoints da API](#endpoints-da-api)
-    - [Infraestrutura & Autenticação (Público)](#infraestrutura--autenticação-público)
+    - [Infraestrutura & Autenticação (Público)](#infraestrutura-autenticação-público)
     - [Catálogo (Público)](#catálogo-público)
     - [Administração (Bearer Token)](#administração-bearer-token)
-    - [Checkout (Público)](#checkout-público)
   - [Como executar](#como-executar)
     - [Requisitos](#requisitos)
     - [Passos](#passos)
@@ -22,7 +21,6 @@
     - [Arquitetura Hexagonal](#arquitetura-hexagonal)
     - [Spec-First com OpenAPI](#spec-first-com-openapi)
     - [Observabilidade de Nível de Produção](#observabilidade-de-nível-de-produção)
-    - [Persistência Poliglota](#persistência-poliglota)
     - [Integração com WhatsApp](#integração-com-whatsapp)
   - [Performance e Resiliência](#performance-e-resiliência)
   - [Licença](#licença)

@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd
 import streamlit as st
 from api_call import BazaarGoClient
@@ -160,8 +162,8 @@ class Admin:
                     if btn_salvar:
                         res = self.client.update_product(
                             product_id=prod["id"],
-                            name=edit_nome, description=edit_desc, price=edit_preco,
-                            stock=edit_estoque, category_id=edit_cat, specs=prod.get("specs", {})
+                            name=edit_nome, description=edit_desc, price=edit_preco,  # pyright: ignore[reportArgumentType]
+                            stock=edit_estoque, category_id=edit_cat, specs=prod.get("specs", {})  # pyright: ignore[reportArgumentType]
                         )
                         if res.status_code in (200, 204):
                             st.success("Produto atualizado!")
@@ -204,10 +206,10 @@ class Admin:
 
 if __name__ == "__main__":
     st.set_page_config(page_title="BaazarGo Admin", page_icon="🛒", layout="wide")
-
+    API_URL = os.getenv("API_URL", "http://localhost:8080")
     @st.cache_resource
     def get_api_client():
-        return BazaarGoClient(base_url="http://api.localhost")
+        return BazaarGoClient(base_url=API_URL)
 
     client = get_api_client()
     admin = Admin(client)

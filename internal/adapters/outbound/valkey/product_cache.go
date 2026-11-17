@@ -32,6 +32,9 @@ func NewProductCache(rdb *redis.Client) *ProductCache {
 func (p *ProductCache) Create(ctx context.Context, item domain.Product) error {
 	ctx, span := tracer.Start(ctx, "ProductCache.Create")
 	defer span.End()
+	if item.ID == "" {
+		return fmt.Errorf("cache: cannot cache an empty product (ID is empty)")
+	}
 
 	cacheKey := fmt.Sprintf("product:%s", item.ID)
 
