@@ -221,7 +221,7 @@ func TestUserRepo_Update(t *testing.T) {
 				require.NotEqual(t, user1.Email, updatedUser.Email)
 			}
 			if string(tt.user.PasswordHash) != "" {
-				require.NotEqual(t, user1.PasswordHash, updatedUser.PasswordHash)
+				require.NotEqual(t, updatedUser.PasswordHash, tt.user.PasswordHash)
 			}
 		})
 	}
