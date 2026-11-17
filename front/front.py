@@ -1,8 +1,8 @@
 import streamlit as st
-import requests 
+import requests
 # Configuração da página
 
-API_URL="https://api.bazaargo.com"
+API_URL="http://api.localhost"
 st.set_page_config(
     page_title="BaazarGo",
     layout="wide"
@@ -24,10 +24,10 @@ def buscar_produtos():
         print(f"Erro ao buscar produtos: {erro}")
         return []
 
-  
+
 produtos = buscar_produtos()
 
-st.title("BaazerGo - Nossa Vitrine")
+st.title("BazaarGo - Nossa Vitrine")
 
 if produtos:
 
