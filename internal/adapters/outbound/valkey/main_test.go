@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/go-openapi/testify/require"
 	"github.com/redis/go-redis/v9"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -17,7 +18,8 @@ var (
 
 func cleanupTest(t *testing.T) {
 	t.Cleanup(func() {
-		testRDB.FlushAll(t.Context())
+		err := testRDB.FlushAll(context.Background()).Err()
+		require.NoError(t, err)
 	})
 }
 
