@@ -1,10 +1,52 @@
 import streamlit as st
-
+import requests 
 # Configuração da página
+
+API_URL="https://api.bazaargo.com"
 st.set_page_config(
     page_title="BaazarGo",
     layout="wide"
 )
+def buscar_produtos():
+  try:
+        resposta = requests.get(
+            f"{API_URL}/products/recent",
+            timeout=10
+        )
+
+        resposta.raise_for_status()
+
+        dados = resposta.json()
+
+        return dados
+
+  except requests.exceptions.RequestException as erro:
+        print(f"Erro ao buscar produtos: {erro}")
+        return []
+
+  
+produtos = buscar_produtos()
+
+st.title("BaazerGo - Nossa Vitrine")
+
+if produtos:
+
+    colunas = st.columns(3)
+
+    for i, produto in enumerate(produtos):
+
+        with colunas[i % 3]:
+
+            st.subheader(produto["name"])
+
+            st.write(
+                f"R$ {float(produto['price']):.2f}"
+            )
+
+            st.write(produto.get("description", ""))
+
+else:
+    st.info("Nenhum produto encontrado.")
 
 
 # Cores da loja

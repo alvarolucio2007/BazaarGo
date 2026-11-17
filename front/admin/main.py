@@ -89,11 +89,11 @@ class Admin:
         try:
             health = self.client.health_check()
             if health.status_code == 200:
-                st.success("✅ Sistemas operacionais e bancos de dados conectados.")
+                st.success(" Sistemas operacionais e bancos de dados conectados.")
             else:
-                st.error("⚠️ Instabilidade nos servidores.")
+                st.error(" Instabilidade nos servidores.")
         except:
-            st.error("❌ Falha ao conectar com a API.")
+            st.error(" Falha ao conectar com a API.")
 
 
     def render_produtos(self) -> None:
@@ -140,7 +140,7 @@ class Admin:
             df_view.columns = ["ID", "Nome", "Preço", "Estoque"]
             st.dataframe(df_view, use_container_width=True)
 
-        with st.expander("✏️ Editar ou Excluir Produto", expanded=False):
+        with st.expander(" Editar ou Excluir Produto", expanded=False):
             opcoes = {f"{p['name']} (ID: {p['id']})": p for p in produtos}
             produto_selecionado_nome = st.selectbox("Selecione o produto:", list(opcoes.keys()))
 
