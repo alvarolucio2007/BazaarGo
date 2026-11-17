@@ -2,6 +2,7 @@ package valkey_test
 
 import (
 	"testing"
+	"uuid"
 
 	"github.com/alvarolucio2007/bazaargo/internal/adapters/outbound/valkey"
 	"github.com/go-openapi/testify/require"
@@ -66,13 +67,14 @@ func TestRecentlyViewedRepo_Add(t *testing.T) {
 }
 
 func TestRecentlyViewedRepo_Get(t *testing.T) {
-	clientID := "client"
+	clientID := uuid.New().String()
 	productIDs := []string{"product1", "product2", "product3", "product4", "product5"}
 	r := valkey.NewRecentlyViewedRepo(testRDB)
 	for _, productID := range productIDs {
 		err := r.Add(t.Context(), clientID, productID)
 		require.NoError(t, err)
 	}
+	cleanupTest(t)
 	tests := []struct {
 		name string // description of this test case
 		// Named input parameters for receiver constructor.
