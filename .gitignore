@@ -81,7 +81,6 @@ ENV/
 env/
 ENV/
 
-# === GERAL, AMBIENTES E IDEs ===
 # env file
 .env
 .env.*
