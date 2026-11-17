@@ -43,7 +43,7 @@ class Admin:
                                 st.error(f"Erro de conexão: {e}")
 
                 with tab_registro:
-                    with st.form("form_registro_inicial"):
+                    with st.form("form_registro_inicial"): #TODO: Add specs i hate this bro
                         r_nome = st.text_input("Nome")
                         r_email = st.text_input("E-mail")
                         r_cpf = st.text_input("CPF (só números)")
@@ -107,7 +107,7 @@ class Admin:
         except Exception as e:
             st.error(f"Erro ao buscar produtos: {e}")
 
-        with st.expander("➕ Cadastrar Novo Produto", expanded=False):
+        with st.expander("➕ Cadastrar Novo Produto", expanded=False): #TODO: Add specs
             with st.form("form_novo_produto"):
                 nome = st.text_input("Nome do produto")
                 descricao = st.text_area("Descrição")
@@ -140,7 +140,7 @@ class Admin:
             df_view.columns = ["ID", "Nome", "Preço", "Estoque"]
             st.dataframe(df_view, use_container_width=True)
 
-        with st.expander("✏️ Editar ou Excluir Produto", expanded=False):
+        with st.expander("✏️ Editar ou Excluir Produto", expanded=False): #TODO: Add specs
             opcoes = {f"{p['name']} (ID: {p['id']})": p for p in produtos}
             produto_selecionado_nome = st.selectbox("Selecione o produto:", list(opcoes.keys()))
 
