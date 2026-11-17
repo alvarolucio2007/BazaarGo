@@ -29,6 +29,8 @@ COPY --chown=appuser:appuser front/admin/ .
 
 COPY --chown=appuser:appuser front/api_call.py .
 
+COPY --chown=appuser:appuser front/produto.py .
+
 USER appuser
 
 EXPOSE 8501

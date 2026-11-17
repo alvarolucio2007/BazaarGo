@@ -1,7 +1,13 @@
+import json
 import os
+import sys
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 from api_call import BazaarGoClient
 
 
@@ -40,10 +46,10 @@ class Admin:
                                 else:
                                     st.error("E-mail ou senha inválidos.")
                             except Exception as e:
-                                st.error(f"Erro de conexão: {e}")
+                                st.error(f"Erro de login: {e}")
 
                 with tab_registro:
-                    with st.form("form_registro_inicial"): #TODO: Add specs i hate this bro
+                    with st.form("form_registro_inicial"):
                         r_nome = st.text_input("Nome")
                         r_email = st.text_input("E-mail")
                         r_cpf = st.text_input("CPF (só números)")
@@ -55,13 +61,10 @@ class Admin:
                                 st.warning("Preencha todos os campos.")
                             else:
                                 try:
-                                    res = self.client.register_user(r_nome, r_email, r_senha, r_cpf)
-                                    if res.status_code in (200, 201):
-                                        st.success("Conta criada! Faça login para continuar.")
-                                    else:
-                                        st.error(res.json().get("error", "Erro ao criar conta."))
+                                    self.client.register_user(r_nome, r_email, r_senha, r_cpf)
+                                    st.success("Conta criada! Faça login para continuar.")
                                 except Exception as e:
-                                    st.error(f"Erro de conexão: {e}")
+                                    st.error(f"Erro ao criar conta: {e}")
 
     def render_sidebar(self) -> None:
         st.sidebar.title("BaazarGo")
@@ -85,45 +88,60 @@ class Admin:
         st.title("Status do Sistema")
         st.caption("Visão geral dos status do sistema")
 
-
         try:
             health = self.client.health_check()
-            if health.status_code == 200:
-                st.success(" Sistemas operacionais e bancos de dados conectados.")
+            if all(health.values()):
+                st.success("Sistemas operacionais e bancos de dados conectados.")
             else:
-                st.error(" Instabilidade nos servidores.")
-        except:
-            st.error(" Falha ao conectar com a API.")
-
+                st.warning("Algum serviço pode estar instável.")
+                st.json(health)
+        except Exception as e:
+            st.error(f"Falha ao conectar com a API: {e}")
 
     def render_produtos(self) -> None:
         st.title("Gerenciamento de Produtos")
 
         produtos = []
         try:
-            res = self.client.get_all_products()
-            if res.status_code == 200:
-                produtos = res.json().get("data", []) if isinstance(res.json(), dict) else res.json()
+            produtos = self.client.list_products()
         except Exception as e:
             st.error(f"Erro ao buscar produtos: {e}")
 
-        with st.expander("➕ Cadastrar Novo Produto", expanded=False): #TODO: Add specs
+        # --- CADASTRO DE NOVO PRODUTO ---
+        with st.expander("➕ Cadastrar Novo Produto", expanded=False):
             with st.form("form_novo_produto"):
                 nome = st.text_input("Nome do produto")
                 descricao = st.text_area("Descrição")
                 preco = st.number_input("Preço (R$)", min_value=0.0, step=1.0)
                 estoque = st.number_input("Estoque", min_value=0, step=1)
                 categoria = st.text_input("ID da categoria")
+
+                st.subheader("Especificações (Specs)")
+                st.caption("Digite em formato JSON válido (ex: {\"Cor\": \"Azul\", \"Voltagem\": \"220V\"})")
+                specs_input = st.text_area("Specs (JSON)", value="{}")
+
                 enviar = st.form_submit_button("Cadastrar", use_container_width=True)
 
                 if enviar:
                     if nome.strip():
-                        res = self.client.create_product(nome, descricao, preco, estoque, categoria, {})
-                        if res.status_code == 201:
-                            st.success("Produto cadastrado!")
+                        try:
+                            # Converte a string do JSON para dicionário Python
+                            specs_dict = json.loads(specs_input) if specs_input.strip() else {}
+
+                            self.client.create_product(
+                                name=nome,
+                                description=descricao,
+                                price=preco,
+                                stock=int(estoque),
+                                category_id=categoria,
+                                specs=specs_dict
+                            )
+                            st.success("Produto cadastrado com sucesso!")
                             st.rerun()
-                        else:
-                            st.error("Erro ao cadastrar.")
+                        except json.JSONDecodeError:
+                            st.error("O campo de Specs deve ser um JSON válido (ex: {\"chave\": \"valor\"}).")
+                        except Exception as e:
+                            st.error(f"Erro ao cadastrar produto: {e}")
                     else:
                         st.warning("O nome é obrigatório.")
 
@@ -134,50 +152,71 @@ class Admin:
             st.info("Nenhum produto cadastrado.")
             return
 
-        df = pd.DataFrame(produtos)
+        dados_tabela = [
+            {
+                "ID": p.id,
+                "Nome": p.name,
+                "Preço": p.price,
+                "Estoque": p.stock,
+                "Categoria": p.category_id,
+            }
+            for p in produtos
+        ]
+        df = pd.DataFrame(dados_tabela)
         if not df.empty:
-            df_view = df[["id", "name", "price", "stock"]].copy()
-            df_view.columns = ["ID", "Nome", "Preço", "Estoque"]
-            st.dataframe(df_view, use_container_width=True)
+            st.dataframe(df, use_container_width=True)
 
-        with st.expander("✏️ Editar ou Excluir Produto", expanded=False): #TODO: Add specs
-            opcoes = {f"{p['name']} (ID: {p['id']})": p for p in produtos}
+        # --- EDIÇÃO E EXCLUSÃO DE PRODUTO ---
+        with st.expander("✏️ Editar ou Excluir Produto", expanded=False):
+            opcoes = {f"{p.name} (ID: {p.id})": p for p in produtos}
             produto_selecionado_nome = st.selectbox("Selecione o produto:", list(opcoes.keys()))
 
             if produto_selecionado_nome:
                 prod = opcoes[produto_selecionado_nome]
 
                 with st.form("form_editar_produto"):
-                    st.write(f"Editando: **{prod['name']}**")
-                    edit_nome = st.text_input("Nome", value=prod.get("name", ""))
-                    edit_desc = st.text_area("Descrição", value=prod.get("description", ""))
-                    edit_preco = st.number_input("Preço", value=float(prod.get("price", 0.0)))
-                    edit_estoque = st.number_input("Estoque", value=int(prod.get("stock", 0)))
-                    edit_cat = st.text_input("Categoria ID", value=prod.get("category_id", ""))
+                    st.write(f"Editando: **{prod.name}**")
+                    edit_nome = st.text_input("Nome", value=prod.name)
+                    edit_desc = st.text_area("Descrição", value=prod.description)
+                    edit_preco = st.number_input("Preço", value=float(prod.price))
+                    edit_estoque = st.number_input("Estoque", value=int(prod.stock))
+                    edit_cat = st.text_input("Categoria ID", value=prod.category_id)
+
+                    # Converte o dicionário atual de specs para string JSON para preencher o input
+                    specs_atual_str = json.dumps(prod.specs, ensure_ascii=False) if prod.specs else "{}"
+                    edit_specs_input = st.text_area("Specs (JSON)", value=specs_atual_str)
 
                     col_salvar, col_deletar = st.columns(2)
                     btn_salvar = col_salvar.form_submit_button("💾 Salvar Alterações", use_container_width=True)
                     btn_deletar = col_deletar.form_submit_button("🗑️ Excluir Produto", use_container_width=True)
 
                     if btn_salvar:
-                        res = self.client.update_product(
-                            product_id=prod["id"],
-                            name=edit_nome, description=edit_desc, price=edit_preco,  # pyright: ignore[reportArgumentType]
-                            stock=edit_estoque, category_id=edit_cat, specs=prod.get("specs", {})  # pyright: ignore[reportArgumentType]
-                        )
-                        if res.status_code in (200, 204):
-                            st.success("Produto atualizado!")
+                        try:
+                            specs_dict = json.loads(edit_specs_input) if edit_specs_input.strip() else {}
+
+                            self.client.update_product(
+                                product_id=prod.id,
+                                name=edit_nome,
+                                description=edit_desc,
+                                price=edit_preco,
+                                stock=int(edit_estoque),
+                                category_id=edit_cat,
+                                specs=specs_dict
+                            )
+                            st.success("Produto atualizado com sucesso!")
                             st.rerun()
-                        else:
-                            st.error(f"Erro ao atualizar: {res.text}")
+                        except json.JSONDecodeError:
+                            st.error("O campo de Specs deve ser um JSON válido.")
+                        except Exception as e:
+                            st.error(f"Erro ao atualizar: {e}")
 
                     if btn_deletar:
-                        res = self.client.delete_product(prod["id"])
-                        if res.status_code in (200, 204):
-                            st.success("Produto excluído!")
+                        try:
+                            self.client.delete_product(prod.id)
+                            st.success("Produto excluído com sucesso!")
                             st.rerun()
-                        else:
-                            st.error(f"Erro ao excluir: {res.text}")
+                        except Exception as e:
+                            st.error(f"Erro ao excluir: {e}")
 
     def render_usuarios(self) -> None:
         st.title("Gerenciamento de Usuários")
@@ -196,17 +235,14 @@ class Admin:
                     st.warning("Preencha todos os campos.")
                 else:
                     try:
-                        res = self.client.register_user(nome, email, senha, cpf)
-                        if res.status_code in (200, 201):
-                            st.success(f"Usuário {nome} criado com sucesso!")
-                        else:
-                            st.error(f"Erro: {res.json().get('error', 'Falha ao criar usuário')}")
+                        self.client.register_user(nome, email, senha, cpf)
+                        st.success(f"Usuário {nome} criado com sucesso!")
                     except Exception as e:
-                        st.error(f"Erro de conexão: {e}")
+                        st.error(f"Erro ao criar usuário: {e}")
 
 if __name__ == "__main__":
     st.set_page_config(page_title="BaazarGo Admin", page_icon="🛒", layout="wide")
-    API_URL = os.getenv("API_URL", "http://localhost:8080")
+    API_URL = os.getenv("API_URL", "http://api.localhost")
     @st.cache_resource
     def get_api_client():
         return BazaarGoClient(base_url=API_URL)

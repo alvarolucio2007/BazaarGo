@@ -10,7 +10,12 @@ class Produto:
     description:str
     price:float
     stock:int
-    categoryID:str
+    category_id:str
     specs:dict[str,Any]
-    created_at:time
-    updated_at:time
+
+@dataclass
+class UsuarioResponse:
+    id: int
+    name: str
+    cpf: str
+    email: str

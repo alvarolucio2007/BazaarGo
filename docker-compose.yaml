@@ -152,6 +152,20 @@ services:
     depends_on:
       api:
         condition: service_healthy
+  frontend:
+    build:
+      context: .
+      dockerfile: front/vitrine/Dockerfile
+    container_name: bazaar-frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.front.rule=Host(`front.localhost`)"
+      - "traefik.http.services.front.loadbalancer.server.port=8501"
+    environment:
+      - API_URL=http://api:8080
+    depends_on:
+      api:
+        condition: service_healthy
 volumes:
   db-data:
   mongo-data:
