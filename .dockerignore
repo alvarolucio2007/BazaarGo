@@ -2,6 +2,9 @@
 .gitignore
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 /bin/
 /dist/
@@ -57,6 +60,14 @@ coverage.xml
 .ruff_cache/
 .pytype/
 .pylint.d/
+.venv-uv/
+uv.lock
+poetry.lock
+
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
 
 .env
 .env.*
@@ -67,6 +78,12 @@ coverage.xml
 README.md
 LICENSE
 docs/
+*.md
 
 *_test.go
 coverage.out
+
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
