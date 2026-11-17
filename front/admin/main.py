@@ -89,11 +89,11 @@ class Admin:
         try:
             health = self.client.health_check()
             if health.status_code == 200:
-                st.success("✅ Sistemas operacionais e bancos de dados conectados.")
+                st.success(" Sistemas operacionais e bancos de dados conectados.")
             else:
-                st.error("⚠️ Instabilidade nos servidores.")
+                st.error(" Instabilidade nos servidores.")
         except:
-            st.error("❌ Falha ao conectar com a API.")
+            st.error(" Falha ao conectar com a API.")
 
 
     def render_produtos(self) -> None:
