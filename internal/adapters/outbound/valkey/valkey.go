@@ -12,6 +12,7 @@ const CacheQueryTimeout = 500 * time.Millisecond
 const CacheExpTime = time.Hour
 
 var ErrCacheMiss = errors.New("cache miss")
+var ErrEmptyParams = errors.New("empty params")
 
 // NewConn creates a new Valkey connection.
 //
