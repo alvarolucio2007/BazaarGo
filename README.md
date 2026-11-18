@@ -270,12 +270,23 @@ Para manter o escopo enxuto e sem dependência de gateways de pagamento complexo
 
 ## Performance e Resiliência
 
-O backend foi submetido a testes de carga massivos (utilizando `autocannon`) para validar a arquitetura.
+O sistema foi submetido a testes de carga massivos para validar a arquitetura e a capacidade de escalonamento horizontal.
 
-- **Vazão (Throughput):** A API sustentou uma média de **~45.000 requisições por segundo** com 10.000 conexões simultâneas, retornando status 200.
-- **Eficiência de CPU:** Durante o pico de testes, a aplicação Go consumiu **menos de 6% de um único núcleo de CPU**, provando a eficiência do modelo de concorrência do Go e do uso do cache no Redis.
-- **Health Check Concorrente:** O endpoint `/health` utiliza goroutines (`errgroup`) e timeout de 3 segundos para pingar os três bancos de dados em paralelo, garantindo respostas em menos de 500µs.
+### Escalonamento Horizontal (Load Balancing)
+A API foi escalada para **3 instâncias** simultâneas (`docker compose up -d --scale api=3`), com o Traefik atuando como Load Balancer para distribuir o tráfego entre elas.
 
+### Resultados do Teste de Estresse
+Utilizando a ferramenta `autocannon` com **10.000 conexões simultâneas**, o sistema apresentou os seguintes resultados:
+
+- **Vazão (Throughput):** Média de **~43.000 requisições por segundo**.
+- **Confiabilidade:** **347.693 requisições** processadas com **100% de sucesso** (Status 200), sem nenhuma queda de conexão ou erro 500.
+- **Latência (p99):** 1.72s.
+
+### Análise de Gargalos (Profiling)
+Os testes foram executados em um ambiente de desenvolvimento local (todas as instâncias e o gerador de carga na mesma máquina física). Através da stack de Observabilidade, foi possível identificar os seguintes gargalos:
+- **MongoDB (233% de CPU):** A rota testada utiliza *Regex Scan* (Case-Insensitive) no catálogo. Como o teste exige leitura extrema, o banco varre a coleção inteira. Em produção, um índice de texto (`Text Index`) resolveria esse gargalo.
+- **OpenTelemetry Stack (1.3GB RAM):** A stack LGTM processou a telemetria de 3 instâncias da API simultaneamente sob carga máxima, provando a robustez da coleta de traces e métricas.
+- **Go API (Estável):** Mesmo sob estresse, as instâncias da API mantiveram a estabilidade de memória (sem Goroutine Leaks) e uso de CPU focado no processamento concorrente.
 ---
 
 ## Licença
