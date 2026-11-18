@@ -1,7 +1,7 @@
-# BaazarGo
+# BazaarGo
 
 <!--toc:start-->
-- [BaazarGo](#baazargo)
+- [BazaarGo](#bazaargo)
   - [Visão geral](#visão-geral)
   - [Diferenciais do projeto](#diferenciais-do-projeto)
   - [Stack de tecnologias](#stack-de-tecnologias)
@@ -11,9 +11,9 @@
     - [SGBDs Utilizados](#sgbds-utilizados)
     - [Modelagem de Dados](#modelagem-de-dados)
   - [Endpoints da API](#endpoints-da-api)
-    - [Infraestrutura & Autenticação (Público)](#infraestrutura-autenticação-público)
-    - [Catálogo (Público)](#catálogo-público)
-    - [Administração (Bearer Token)](#administração-bearer-token)
+    - [Infraestrutura & Autenticação](#infraestrutura--autenticação)
+    - [Catálogo de Produtos](#catálogo-de-produtos)
+    - [Checkout](#checkout)
   - [Como executar](#como-executar)
     - [Requisitos](#requisitos)
     - [Passos](#passos)
@@ -21,25 +21,26 @@
     - [Arquitetura Hexagonal](#arquitetura-hexagonal)
     - [Spec-First com OpenAPI](#spec-first-com-openapi)
     - [Observabilidade de Nível de Produção](#observabilidade-de-nível-de-produção)
+    - [Roteamento com Traefik](#roteamento-com-traefik)
     - [Integração com WhatsApp](#integração-com-whatsapp)
   - [Performance e Resiliência](#performance-e-resiliência)
   - [Licença](#licença)
 <!--toc:end-->
 
-E-commerce Fullstack (Catálogo de Produtos) com arquitetura hexagonal, persistência poliglota e observabilidade distribuída.
+E-commerce Fullstack (Catálogo de Produtos) com arquitetura hexagonal, persistência poliglota, roteamento inteligente e observabilidade distribuída.
 
 ---
 
 ## Visão geral
 
-O **BazaarGo** é uma plataforma de e-commerce que permite o cadastro e a listagem de produtos, gerenciamento de carrinho de compras e finalização de pedidos via WhatsApp. O projeto foi construído para demonstrar, na prática, a aplicação do conceito de **Banco de Dados Poliglota** (utilizando a tecnologia certa para cada tipo de dado) aliado a uma arquitetura backend moderna e altamente observável.
+O **BazaarGo** é uma plataforma de e-commerce que permite o cadastro e a listagem de produtos, gerenciamento de carrinho de compras e finalização de pedidos via WhatsApp. O projeto foi construído para demonstrar, na prática, a aplicação do conceito de **Banco de Dados Poliglota** (utilizando a tecnologia certa para cada tipo de dado) aliado a uma arquitetura backend moderna, altamente observável e orquestrada com microsserviços leves.
 
 O sistema atende a dois módulos principais:
 
-1. **Módulo Administrativo:** Onde administradores autenticados cadastram e gerenciam o catálogo de produtos.
-2. **Módulo Cliente:** Uma vitrine rápida que exibe os produtos, registra o histórico de "vistos recentemente" e permite fechar o pedido gerando uma mensagem formatada no WhatsApp.
+1. **Módulo Administrativo:** Onde administradores autenticados (via PostgreSQL) cadastram e gerenciam o catálogo de produtos (MongoDB).
+2. **Módulo Cliente:** Uma vitrine que exibe os produtos, registra o histórico de "vistos recentemente" (Valkey) e permite fechar o pedido gerando uma mensagem formatada para o WhatsApp.
 
-> **Nota de transparência** : Este projeto utilizou ferramentas de Inteligência Artificial (IA) como assistente de desenvolvimento durante todo o processo. A IA foi utilizada para acelerar a construção das interfaces visuais, mas também atuou diretamente como um "copiloto" técnico: auxiliando na configuração da infraestrutura (Docker, Traefik, stack LGTM), instrumentação da observabilidade (OpenTelemetry), resolução de bugs complexos e na discussão de tomadas de decisão sobre padrões de projeto e arquitetura.
+> **Nota de transparência:** Este projeto utilizou ferramentas de Inteligência Artificial (IA) como assistente de desenvolvimento durante todo o processo. A IA foi utilizada para acelerar a construção das interfaces visuais, mas também atuou diretamente como um "copiloto" técnico: auxiliando na configuração da infraestrutura (Docker, Traefik, stack LGTM), instrumentação da observabilidade (OpenTelemetry), resolução de bugs complexos e na discussão de tomadas de decisão sobre padrões de projeto e arquitetura. Apesar do forte auxílio da IA, a implementação, os testes e a compreensão de cada decisão técnica foram de responsabilidade do desenvolvedor.
 
 ---
 
@@ -47,11 +48,11 @@ O sistema atende a dois módulos principais:
 
 Além dos requisitos mínimos, o projeto foi construído seguindo práticas adotadas em ambientes de produção corporativos:
 
-- **Persistência Poliglota:** Uso de PostgreSQL (Supabase) para autenticação (ACID), MongoDB para catálogo (flexibilidade de schema) e Valkey/Redis para cache (performance).
+- **Persistência Poliglota:** Uso de PostgreSQL (Autenticação/ACID), MongoDB (Catálogo/Flexibilidade de Schema) e Valkey/Redis (Cache e Histórico de visualizações).
 - **Observabilidade Completa (LGTM + Pyroscope):** Rastreamento distribuído (Tempo), agregação de logs estruturados (Loki), coleta de métricas (Prometheus/Mimir) e profiling contínuo de CPU/Memória (Pyroscope).
-- **Arquitetura Hexagonal (Ports and Adapters):** Domínio puro e isolado de dependências externas, facilitando testes e troca de tecnologia.
+- **Arquitetura Hexagonal (Ports and Adapters):** Domínio puro e isolado de frameworks, bancos de dados e detalhes de HTTP.
 - **Spec-First com OpenAPI (`oapi-codegen`):** A API é gerada a partir do contrato `openapi.yaml`, garantindo *Strict Server* (tipagem forte e validação automática de requests/responses).
-- **Reverse Proxy com Traefik:** Roteamento inteligente e balanceamento de carga nativo para os containers Docker.
+- **Reverse Proxy com Traefik:** Roteamento inteligente e isolamento de rede (subdomínios locais como `api.localhost` e `admin.localhost`).
 - **Autenticação com PASETO v4:** Substituindo o JWT por um padrão mais seguro contra ataques de análise de tempo e confusão de algoritmos.
 - **Hash de senha com Argon2id:** Configurado com parâmetros acima das recomendações mínimas do OWASP.
 - **Infraestrutura 100% Containerizada:** Orquestração completa via Docker Compose.
@@ -66,7 +67,7 @@ Além dos requisitos mínimos, o projeto foi construído seguindo práticas adot
 | Linguagem | Go (Golang) |
 | Roteador HTTP | chi |
 | Design de API | OpenAPI 3.0 (Spec-First + Strict Server) |
-| Autenticação | PASETO v4 (aidantwoods) |
+| Autenticação | PASETO v4 |
 | Hash de senha | Argon2id |
 | **Bancos de Dados** | |
 | Relacional (Auth) | PostgreSQL 18 |
@@ -76,8 +77,7 @@ Além dos requisitos mínimos, o projeto foi construído seguindo práticas adot
 | Coleta e Visualização | Grafana, Tempo, Loki, Prometheus, Pyroscope |
 | Instrumentação | OpenTelemetry (SDK Go + OTLP gRPC/HTTP) |
 | **Frontend & UI** | |
-| Vitrine (Cliente) | Python + Streamlit |
-| Painel Admin | Python + Streamlit |
+| Vitrine e Painel Admin | Python + Streamlit |
 | **Infraestrutura** | |
 | Proxy Reverso | Traefik v3 |
 | Containerização | Docker e Docker Compose |
@@ -86,7 +86,7 @@ Além dos requisitos mínimos, o projeto foi construído seguindo práticas adot
 
 ## Arquitetura
 
-O projeto adota uma arquitetura desacoplada, onde o backend segue os princípios da **Arquitetura Hexagonal** e os frontends atuam como consumidores puros da API REST.
+O projeto adota uma arquitetura de microsserviços desacoplados, orquestrada pelo Traefik. O backend segue os princípios da **Arquitetura Hexagonal** e os frontends atuam como consumidores puros da API REST.
 
 ```mermaid
 flowchart TD
@@ -94,34 +94,40 @@ flowchart TD
     User([Cliente])
     Admin([Administrador])
 
-    %% Proxy
-    User --> Traefik[Traefik Reverse Proxy]
-    Admin --> Traefik
-
+    %% Proxy e Roteamento
+    User -->|http://front.localhost| Traefik[Traefik Reverse Proxy]
+    Admin -->|http://admin.localhost| Traefik
+    
     %% Frontends
-    Traefik --> Streamlit[Vitrine Streamlit]
-    Traefik --> Vitrine[Painel Admin Streamlit]
-    Traefik --> API
-
+    Traefik --> Vitrine[Vitrine Streamlit]
+    Traefik --> AdminPanel[Painel Admin Streamlit]
+    
     %% Backend
-    Vitrine --> API[Go API - Hexagonal]
-    Streamlit --> API
+    Traefik -->|http://api.localhost| API[Go API - Hexagonal]
+    Vitrine --> API
+    AdminPanel --> API
 
     %% Bancos de Dados (Persistência Poliglota)
     API --> PG[(PostgreSQL)]
     API --> Mongo[(MongoDB)]
     API --> Valkey[(Valkey/Redis)]
 
+    %% Observabilidade
+    API -.->|OTLP / Traces, Metrics, Logs| Telemetry[Stack LGTM + Pyroscope]
+    Traefik -.->|http://telemetry.localhost| Telemetry
+
     %% Estilização
     classDef proxy fill:#f9f,stroke:#333,stroke-width:2px,color:#000;
     classDef frontend fill:#bbf,stroke:#333,stroke-width:2px,color:#000;
     classDef backend fill:#fbb,stroke:#333,stroke-width:2px,color:#000;
     classDef database fill:#bfb,stroke:#333,stroke-width:2px,color:#000;
+    classDef obs fill:#ffb,stroke:#333,stroke-width:2px,color:#000;
     
     class Traefik proxy;
-    class Vitrine,Streamlit frontend;
+    class Vitrine,AdminPanel frontend;
     class API backend;
     class PG,Mongo,Valkey database;
+    class Telemetry obs;
 ```
 
 ### Estrutura do projeto
@@ -142,9 +148,9 @@ BazaarGo/
 │   └── openapi.yaml         # A "Fonte da Verdade" do contrato da API
 ├── database/
 │   └── migrations/          # Scripts SQL para o PostgreSQL
-├── frontend/                # Aplicação SvelteKit (Vitrine do Cliente)
-├── admin_panel/             # Aplicação Streamlit (Painel Administrativo em Python)
-├── docker-compose.yml       # Orquestração completa (API, Bancos, Observabilidade, Traefik)
+├── front/                   # Aplicações Python (Vitrine e Admin em Streamlit)
+│   └── admin/               # Painel Administrativo
+├── docker-compose.yml       # Orquestração (Traefik, API, Bancos, LGTM)
 └── README.md
 ```
 
@@ -163,38 +169,40 @@ A grande estrela deste projeto é a escolha cirúrgica do banco de dados para ca
 ### Modelagem de Dados
 
 - **Users (Postgres):** Tabela relacional contendo `id`, `email`, `password_hash`, etc.
-- **Products (MongoDB):** Documento contendo `_id` (ObjectID), `name`, `price`, `stock` e `specs` (objeto flexível).
+- **Products (MongoDB):** Documento contendo `_id` (ObjectID hex de 24 caracteres), `name`, `price`, `stock` e `specs` (objeto flexível).
 - **Recent Views (Valkey):** Utilização da estrutura de dados **List** (`LPUSH`, `LTRIM`), mantendo apenas os últimos 5 produtos vistos por cada visitante (identificado via Header `X-Client-ID`).
 
 ---
 
 ## Endpoints da API
 
-A documentação completa e interativa está disponível via Swagger UI, mas o resumo das rotas é:
+A documentação completa e interativa está disponível via Swagger UI em `http://api.localhost/swagger/index.html`.
 
-### Infraestrutura & Autenticação (Público)
+### Infraestrutura & Autenticação
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| POST | `/auth/token` | Login e geração do token PASETO |
+| GET | `/health` | Health check concorrente (Postgres, Mongo, Valkey) |
 | POST | `/auth/register` | Criação de um novo Administrador |
+| POST | `/auth/token` | Login e geração do token PASETO |
 
-### Catálogo (Público)
-
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| GET | `/products/search/{name}` | Busca produtos por nome (Regex no MongoDB) |
-| GET | `/products/{id}` | Retorna detalhes de um produto e registra no Redis |
-| GET | `/products/recent` | Retorna os produtos vistos recentemente (via Redis) |
-| POST | `/checkout` | Recebe o carrinho e gera a string formatada para o WhatsApp |
-
-### Administração (Bearer Token)
+### Catálogo de Produtos
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| POST | `/products` | Cadastra um novo produto (requer token) |
-| PUT | `/products/{id}` | Atualiza um produto (requer token) |
-| DELETE | `/products/{id}` | Deleta um produto (requer token) |
+| GET | `/products` | Lista todos os produtos do catálogo |
+| POST | `/products` | Cadastra um novo produto (Requer Bearer Token) |
+| GET | `/products/{id}` | Detalhes do produto (Requer Header `X-Client-ID`) |
+| PUT | `/products/{id}` | Atualiza um produto (Requer Bearer Token e ID Mongo válido) |
+| DELETE | `/products/{id}` | Deleta um produto (Requer Bearer Token) |
+| GET | `/products/search/{name}` | Busca produtos por nome (Case-insensitive) |
+| GET | `/products/recent` | Retorna os produtos vistos recentemente (Requer Header `X-Client-ID`) |
+
+### Checkout
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| POST | `/checkout` | Recebe o carrinho e gera a URL formatada do WhatsApp |
 
 ---
 
@@ -215,19 +223,19 @@ cd bazaargo
 cp .env.example .env
 ```
 
-**2. Suba a stack completa (Traefik, Go API, Bancos, Grafana, etc.)**
+**2. Suba a stack completa (Traefik, Go API, Bancos, LGTM)**
 
 ```bash
 docker compose up -d --build
 ```
 
 **3. Acesse as aplicações via Traefik:**
-O Traefik gerencia as rotas baseadas em subdomínios locais. Certifique-se de que sua máquina resolve `*.localhost` automaticamente (padrão na maioria dos SOs modernos).
+O Traefik gerencia as rotas baseadas em subdomínios locais (padrão na maioria dos SOs modernos).
 
-- **Vitrine (Cliente):** `http://app.localhost` (ou a porta mapeada para o Svelte)
+- **Vitrine (Cliente):** `http://front.localhost`
+- **Painel Admin (Streamlit):** `http://admin.localhost`
 - **API (Swagger):** `http://api.localhost/swagger/index.html`
-- **Painel Admin (Streamlit):** `http://admin.localhost` (ou a porta mapeada)
-- **Observabilidade (Grafana):** `http://localhost:3000` (admin/admin)
+- **Observabilidade (Grafana LGTM):** `http://telemetry.localhost`
 - **Dashboard Traefik:** `http://localhost:8080`
 
 ---
@@ -240,7 +248,7 @@ A escolha de separar o domínio de frameworks (como o `chi`) e de bibliotecas de
 
 ### Spec-First com OpenAPI
 
-Em vez de escrever handlers na mão, o arquivo `openapi.yaml` é a única fonte da verdade. A ferramenta `oapi-codegen` gerou todas as structs de requisição/resposta e as interfaces (Strict Server). Isso elimina a possibilidade de a documentação e o código ficarem dessincronizados.
+Em vez de escrever handlers na mão, o arquivo `openapi.yaml` é a única fonte da verdade. A ferramenta `oapi-codegen` gerou todas as structs de requisição/resposta e as interfaces (Strict Server). Isso elimina a possibilidade de a documentação e o código ficarem dessincronizados. O contrato também inclui validações como tamanho máximo do `X-Client-ID` e regex para validar IDs do MongoDB.
 
 ### Observabilidade de Nível de Produção
 
@@ -250,9 +258,13 @@ Em vez de apenas "prints no terminal", a API foi instrumentada com **OpenTelemet
 - O `otelslog` envia logs estruturados em JSON para o Loki com o `trace_id` atrelado.
 - O **Pyroscope** roda em background capturando perfis de CPU e alocação de memória, permitindo identificar gargalos exatos em tempo real.
 
+### Roteamento com Traefik
+
+Em vez de expor portas soltas (`localhost:8080`, `localhost:8501`), toda a comunicação externa passa pelo Traefik. Isso simula um ambiente de produção real com API Gateway, permitindo escalar containers e isolar os bancos de dados na rede interna do Docker.
+
 ### Integração com WhatsApp
 
-Para manter o escopo enxuto e sem dependência de gateways de pagamento complexos, o processo de finalização de compra (Checkout) monta uma string estruturada com os itens do carrinho (`fmt.Fprintf`), aplica `url.QueryEscape` e gera um link `wa.me`. É a solução mais direta para e-commerces locais.
+Para manter o escopo enxuto e sem dependência de gateways de pagamento complexos, o processo de finalização de compra (Checkout) monta uma string estruturada com os itens do carrinho, aplica `url.QueryEscape` e gera um link `wa.me`. É a solução mais direta para e-commerces locais.
 
 ---
 
@@ -262,10 +274,12 @@ O backend foi submetido a testes de carga massivos (utilizando `autocannon`) par
 
 - **Vazão (Throughput):** A API sustentou uma média de **~45.000 requisições por segundo** com 10.000 conexões simultâneas, retornando status 200.
 - **Eficiência de CPU:** Durante o pico de testes, a aplicação Go consumiu **menos de 6% de um único núcleo de CPU**, provando a eficiência do modelo de concorrência do Go e do uso do cache no Redis.
-- **Estabilidade de Memória:** Os gráficos de *Goroutines* e *Heap Allocation* no Grafana mantiveram-se estáveis (padrão dente de serra), provando a ausência de vazamentos de memória (Memory/Goroutine Leaks).
+- **Health Check Concorrente:** O endpoint `/health` utiliza goroutines (`errgroup`) e timeout de 3 segundos para pingar os três bancos de dados em paralelo, garantindo respostas em menos de 500µs.
 
 ---
 
 ## Licença
 
 Este projeto está licenciado sob a MIT License. Consulte o arquivo `LICENSE` para mais detalhes.
+
+```
