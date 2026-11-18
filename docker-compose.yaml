@@ -53,6 +53,7 @@ services:
       MONGO_INITDB_DATABASE: bazaargo
     volumes:
       - mongo-data:/data/db:z
+    command: mongod --quiet --logpath /dev/null
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
       interval: 10s
