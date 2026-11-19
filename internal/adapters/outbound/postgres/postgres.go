@@ -14,7 +14,6 @@ const PostgresQueryTimeout time.Duration = 5 * time.Second
 //
 // Returns an error if either the pgx driver fails or cannot connect to the database by the addr.
 // Returns an error if the [sql.DB] health ping fails.
-// TODO: Make this get its own context instead of relying on context.Background().
 func NewConn(addr string, maxOpenConns, maxIdleConns int, maxIdleTime time.Duration) (*sql.DB, error) {
 	db, err := sql.Open("pgx", addr)
 	if err != nil {
