@@ -18,6 +18,10 @@ type VectorStore struct {
 	logger *slog.Logger
 }
 
+func NewVectorStore(db *sql.DB, logger *slog.Logger) *VectorStore {
+	return &VectorStore{db: db, logger: logger}
+}
+
 // SearchSimilar implements [ports.VectorStore].
 // It performs a cosine similarity search in the PostgreSQL pgvector database.
 // It retrieves the most relevant document chunks based on the provided embedding.
