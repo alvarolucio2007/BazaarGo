@@ -5,3 +5,4 @@ CREATE TABLE documents (
     content TEXT NOT NULL,
     embedding extensions.vector(384)
 );
+CREATE INDEX ON documents USING hnsw (embedding extensions.vector_cosine_ops);
