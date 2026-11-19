@@ -1,0 +1,57 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: BazaarGo Chatbot API
+paths:
+  /chat:
+    post:
+      operationId: Chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Chat Successful
+          content:
+            application/json:
+              schema:
+                $ref:
+                  '#/components/schemas/ChatResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref:
+                  '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref:
+                  '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error: {type: string}
+    ChatRequest:
+      type: object
+      required: [question]
+      properties:
+        question: {type: string}
+    ChatResponse:
+      type: object
+      required: [answer, sources]
+      properties:
+        answer: {type: string}
+        sources:
+          type: array
+          items:
+            type: string
