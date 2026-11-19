@@ -1,0 +1,147 @@
+{
+  "brand": "BazaarGo",
+  "domain": "e-commerce",
+  "schema_version": "1.0.0",
+  "locale": "pt-BR",
+  "rag_metadata": {
+    "recommended_chunk_strategy": "one_item_per_chunk",
+    "filterable_fields": ["category", "priority", "keywords"]
+  },
+  "faqs": [
+    {
+      "id": "faq-001",
+      "category": "pedidos_e_compras",
+      "question": "Como faço para realizar um pedido na BazaarGo?",
+      "answer": "Para comprar na BazaarGo, navegue pelo catálogo, escolha a variação desejada (tamanho, cor ou voltagem), clique em 'Adicionar ao carrinho' e acesse o checkout. Informe seu endereço de entrega, selecione a forma de pagamento e confirme o pedido. Você receberá a confirmação por e-mail e poderá acompanhar tudo em 'Meus Pedidos'.",
+      "keywords": ["comprar", "fazer pedido", "carrinho", "checkout", "finalizar compra"],
+      "priority": "high",
+      "last_updated": "2026-11-19"
+    },
+    {
+      "id": "faq-002",
+      "category": "pedidos_e_compras",
+      "question": "Posso alterar ou cancelar um pedido após a confirmação?",
+      "answer": "Você pode cancelar um pedido gratuitamente em 'Meus Pedidos' enquanto o status ainda estiver como 'Aguardando pagamento' ou 'Pagamento aprovado' antes da emissão da nota fiscal/separação. Caso já tenha sido faturado ou despachado, o cancelamento pode ser solicitado como devolução após o recebimento. Alterações de itens ou endereço após a confirmação não são permitidas; nesse caso, cancele e faça um novo pedido.",
+      "keywords": ["cancelar pedido", "alterar pedido", "mudar endereço", "desistir da compra"],
+      "priority": "high",
+      "last_updated": "2026-11-19"
+    },
+    {
+      "id": "faq-003",
+      "category": "pagamentos",
+      "question": "Quais formas de pagamento a BazaarGo aceita?",
+      "answer": "A BazaarGo aceita Pix (com aprovação imediata e eventual desconto promocional quando indicado na página do produto), cartões de crédito das principais bandeiras (Visa, Mastercard, Elo, American Express e Hipercard) com parcelamento conforme condições exibidas no checkout, e boleto bancário.",
+      "keywords": ["pagamento", "pix", "cartão de crédito", "parcelamento", "boleto"],
+      "priority": "high",
+      "last_updated": "2026-11-19"
+    },
+    {
+      "id": "faq-004",
+      "category": "pagamentos",
+      "question": "Qual é o prazo de aprovação do pagamento?",
+      "answer": "Pagamentos via Pix costumam ser aprovados em poucos segundos. Compras com cartão de crédito geralmente são confirmadas em poucos minutos, podendo levar até 48 horas em casos de análise de segurança. Boletos bancários levam de 1 a 2 dias úteis após o pagamento para compensação.",
+      "keywords": ["aprovação pagamento", "prazo pix", "demora cartão", "compensação boleto"],
+      "priority": "medium",
+      "last_updated": "2026-11-19"
+    },
+    {
+      "id": "faq-005",
+      "category": "pagamentos",
+      "question": "Como funciona o uso de cupons de desconto e vale-compras?",
+      "answer": "Na etapa de carrinho ou checkout, insira o código do cupom no campo 'Cupom de desconto' e clique em aplicar. Cada cupom possui regras próprias, como valor mínimo, categorias elegíveis, limite por CPF e validade. Cupons geralmente não são cumulativos entre si, salvo quando a promoção indicar explicitamente.",
+      "keywords": ["cupom", "desconto", "vale-compra", "código promocional", "promoção"],
+      "priority": "medium",
+      "last_updated": "2026-11-19"
+    },
+    {
+      "id": "faq-006",
+      "category": "frete_e_entrega",
+      "question": "Como calculo o frete e o prazo de entrega?",
+      "answer": "Na página de qualquer produto ou no carrinho, digite seu CEP no campo de cálculo de frete para ver as modalidades disponíveis, valores e prazos estimados. O prazo começa a contar após a confirmação do pagamento e a emissão da nota fiscal, em dias úteis.",
+      "keywords": ["frete", "prazo de entrega", "calcular cep", "envio", "dias úteis"],
+      "priority": "high",
+      "last_updated": "2026-11-19"
+    },
+    {
+      "id": "faq-007",
+      "category": "frete_e_entrega",
+      "question": "Como rastrear a minha entrega?",
+      "answer": "Acesse 'Meus Pedidos' na sua conta BazaarGo e clique no pedido desejado para ver o status atualizado e o código de rastreamento, quando disponível. Você também recebe notificações por e-mail nas principais etapas do envio.",
+      "keywords": ["rastrear", "rastreamento", "onde está meu pedido", "código de rastreio", "entrega"],
+      "priority": "high",
+      "last_updated": "2026-11-19"
+    },
+    {
+      "id": "faq-008",
+      "category": "frete_e_entrega",
+      "question": "O que acontece se não houver ninguém para receber no endereço?",
+      "answer": "A transportadora realiza tentativas de entrega no endereço informado durante o horário comercial. Caso não haja recebedor ou o acesso seja restringido, o pedido pode retornar ao centro de distribuição ou à agência parceira conforme a regra da transportadora. Mantenha alguém disponível e acompanhe o rastreio em 'Meus Pedidos'.",
+      "keywords": ["ausente", "ninguém para receber", "tentativa de entrega", "pedido voltou", "transportadora"],
+      "priority": "medium",
+      "last_updated": "2026-11-19"
+    },
+    {
+      "id": "faq-009",
+      "category": "trocas_e_devolucoes",
+      "question": "Como funciona a devolução por arrependimento (direito de arrependimento)?",
+      "answer": "Você pode solicitar a devolução por arrependimento em até 7 dias corridos após o recebimento do produto, conforme o Código de Defesa do Consumidor. O item deve estar sem uso, com embalagem original, manuais, acessórios e nota fiscal. Após a conferência do produto devolvido, o reembolso é processado conforme o meio de pagamento original.",
+      "keywords": ["arrependimento", "devolução", "7 dias", "cdc", "devolver produto"],
+      "priority": "high",
+      "last_updated": "2026-11-19"
+    },
+    {
+      "id": "faq-010",
+      "category": "trocas_e_devolucoes",
+      "question": "O que fazer se o produto chegar com defeito ou avariado?",
+      "answer": "Se o produto apresentar defeito de fabricação ou avaria no transporte, abra uma solicitação em 'Meus Pedidos' informando o ocorrido e anexando fotos ou vídeos nítidos do item, da embalagem e da etiqueta. Nossa equipe orientará o envio para análise ou troca conforme a política aplicável e os prazos legais.",
+      "keywords": ["defeito", "avariado", "quebrado", "danificado", "troca por defeito"],
+      "priority": "high",
+      "last_updated": "2026-11-19"
+    },
+    {
+      "id": "faq-011",
+      "category": "trocas_e_devolucoes",
+      "question": "Em quanto tempo recebo o reembolso após uma devolução?",
+      "answer": "O reembolso é iniciado após o recebimento e a conferência do produto devolvido. Em compras via Pix ou boleto, a restituição ocorre na conta informada ou via estorno/transferência conforme o fluxo do checkout dentro do prazo informado na confirmação da devolução. Em cartão de crédito, o estorno é solicitado à administradora e pode aparecer em até uma ou duas faturas subsequentes, dependendo do fechamento da fatura.",
+      "keywords": ["reembolso", "estorno", "dinheiro de volta", "prazo estorno", "fatura cartão"],
+      "priority": "medium",
+      "last_updated": "2026-11-19"
+    },
+    {
+      "id": "faq-012",
+      "category": "conta_e_seguranca",
+      "question": "Como recupero minha senha ou atualizo meus dados cadastrais?",
+      "answer": "Para redefinir a senha, clique em 'Esqueci minha senha' na tela de login e siga as instruções enviadas para o seu e-mail cadastrado. Para atualizar dados como telefone ou endereços salvos, acesse 'Minha Conta' após fazer login.",
+      "keywords": ["senha", "esqueci minha senha", "login", "cadastro", "atualizar dados"],
+      "priority": "medium",
+      "last_updated": "2026-11-19"
+    },
+    {
+      "id": "faq-013",
+      "category": "conta_e_seguranca",
+      "question": "A BazaarGo é segura? Como meus dados pessoais e de pagamento são protegidos?",
+      "answer": "Sim. A BazaarGo utiliza conexão criptografada (HTTPS) e adota práticas de segurança alinhadas à Lei Geral de Proteção de Dados (LGPD) para proteger informações pessoais e transações. Dados de cartão são processados por gateways de pagamento seguros e não ficam expostos em texto puro.",
+      "keywords": ["segurança", "lgpd", "dados pessoais", "site confiável", "fraude"],
+      "priority": "medium",
+      "last_updated": "2026-11-19"
+    },
+    {
+      "id": "faq-014",
+      "category": "produtos_e_garantia",
+      "question": "Os produtos vendidos na BazaarGo têm nota fiscal e garantia?",
+      "answer": "Sim. Compras na BazaarGo acompanham nota fiscal eletrônica (NF-e), disponível para download em 'Meus Pedidos' e enviada ao seu e-mail. Os produtos contam com garantia legal e, quando aplicável, garantia contratual do fabricante conforme especificado na página do item.",
+      "keywords": ["nota fiscal", "nf-e", "garantia", "fabricante", "original"],
+      "priority": "high",
+      "last_updated": "2026-11-19"
+    },
+    {
+      "id": "faq-015",
+      "category": "atendimento",
+      "question": "Como falar com o suporte da BazaarGo e qual é o horário de atendimento?",
+      "answer": "Você pode falar com o suporte da BazaarGo pelos canais oficiais informados na central de ajuda do site ou dentro de 'Meus Pedidos' (quando o atendimento for referente a uma compra específica). O atendimento humano funciona em horário comercial em dias úteis; tenha em mãos o número do pedido para agilizar.",
+      "keywords": ["suporte", "atendimento", "falar com atendente", "ajuda", "horário de atendimento"],
+      "priority": "medium",
+      "last_updated": "2026-11-19"
+    }
+  ]
+}

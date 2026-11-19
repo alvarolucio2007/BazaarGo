@@ -11,5 +11,7 @@ test:
 	go test -v -cover -short ./...
 run:
 	go run ./...
-generate:
+generate-api:
 	oapi-codegen -config oapi-codegen.yaml api/openapi.yaml
+generate-chatbot:
+	oapi-codegen -config oapi-codegen-chatbot.yaml api/chatbot.yaml
