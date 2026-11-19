@@ -13,6 +13,10 @@ type ChatHandler struct {
 	svc *service.ChatService
 }
 
+func NewChatHandler(svc *service.ChatService) *ChatHandler {
+	return &ChatHandler{svc: svc}
+}
+
 // Chat implements [StrictServerInterface].
 func (c *ChatHandler) Chat(ctx context.Context, request ChatRequestObject) (ChatResponseObject, error) {
 	answer, err := c.svc.Ask(ctx, domain.ChatRequest{Question: request.Body.Question})
