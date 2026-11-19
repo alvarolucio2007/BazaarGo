@@ -32,7 +32,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("error while connecting to DB: %v", err)
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Printf("error while closing DB: %v", err)
+		}
+	}()
 
 	// 3. Instanciando o VectorStore (Faltava essa linha!)
 	pgStore := pgvector.NewVectorStore(db, logger)
