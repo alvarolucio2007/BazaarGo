@@ -16,7 +16,7 @@ func (g *GeminiAdapter) GenerateAnswer(ctx context.Context, prompt string) (stri
 		{Parts: []*genai.Part{{Text: prompt}}},
 	}
 
-	resp, err := g.client.Models.GenerateContent(ctx, "gemini-2.5-flash", contents, nil)
+	resp, err := g.client.Models.GenerateContent(ctx, "gemini-3.5-flash-lite", contents, nil)
 	if err != nil {
 		return "", fmt.Errorf("gemini: failed to generate content: %w", err)
 	}
