@@ -54,7 +54,7 @@ func setupTestDB() (*sql.DB, *postgres.PostgresContainer, error) {
 	ctx := context.Background()
 
 	pgContainer, err := postgres.Run(ctx,
-		"postgres:18-alpine",
+		"pgvector/pgvector:pg18-trixie",
 		postgres.WithDatabase("scholarly_test"),
 		postgres.WithUsername("user"),
 		postgres.WithPassword("pass"),
