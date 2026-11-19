@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:18-alpine
+    image: pgvector/pgvector:pg18-trixie
     container_name: bazaar-pg-db
     environment:
       POSTGRES_DB: bazaargo
