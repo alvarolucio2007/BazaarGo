@@ -32,3 +32,17 @@ func (c *ChatHandler) Chat(ctx context.Context, request ChatRequestObject) (Chat
 		Sources: answer.Sources,
 	}, nil
 }
+
+// HealthCheck implements [StrictServerInterface].
+func (c *ChatHandler) HealthCheck(ctx context.Context, request HealthCheckRequestObject) (HealthCheckResponseObject, error) {
+	ctx, span := tracer.Start(ctx, "ServerHandler.HealthCheck")
+	defer span.End()
+	if err := c.svc.HealthCheck(ctx); err != nil {
+		return HealthCheck500JSONResponse{
+			PostgresHealth: false,
+		}, nil
+	}
+	return HealthCheck200JSONResponse{
+		PostgresHealth: true,
+	}, nil
+}
