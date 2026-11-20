@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"os"
@@ -9,17 +10,19 @@ import (
 	"syscall"
 	"time"
 
+	apiLogger "github.com/alvarolucio2007/bazaargo/internal/adapters/inbound/http"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/httprate"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func (h *ChatHandler) Mount() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.ClientIPFromRemoteAddr)
-	r.Use(middleware.Logger)
+	r.Use(apiLogger.RequestLogger(h.logger))
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
@@ -32,6 +35,19 @@ func (h *ChatHandler) Mount() http.Handler {
 	r.Use(httprate.LimitBy(10, time.Minute, func(r *http.Request) (string, error) {
 		return httprate.CanonicalizeIP(middleware.GetClientIP(r.Context())), nil
 	}))
+	swagger, err := GetSwagger()
+	if err != nil {
+		panic(err)
+	}
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+	))
+	r.Get("/swagger/doc.json", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(swagger); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
 	strictHandler := NewStrictHandler(h, nil)
 	HandlerFromMux(strictHandler, r)
 	return r

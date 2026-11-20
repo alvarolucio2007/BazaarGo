@@ -3,6 +3,22 @@ info:
   version: 1.0.0
   title: BazaarGo Chatbot API
 paths:
+  /health:
+    get:
+      operationId: HealthCheck
+      responses:
+        '200':
+          description: Healthy API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '500':
+          description: Not Healthy API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
   /chat:
     post:
       operationId: Chat
@@ -55,3 +71,8 @@ components:
           type: array
           items:
             type: string
+    HealthResponse:
+      type: object
+      required: [postgres_health]
+      properties:
+        postgres_health: {type: boolean}

@@ -3,15 +3,16 @@ package main
 import (
 	"context"
 	"log"
-	"log/slog"
 	"os"
 	"time"
 
+	"github.com/alvarolucio2007/bazaargo/internal/adapters/outbound/logger"
 	"github.com/alvarolucio2007/bazaargo/internal/app"
 	httpadapter "github.com/alvarolucio2007/bazaargo/internal/chatbot/adapters/inbound/http"
 	"github.com/alvarolucio2007/bazaargo/internal/chatbot/adapters/outbound/gemini"
 	"github.com/alvarolucio2007/bazaargo/internal/chatbot/adapters/outbound/pgvector"
 	"github.com/alvarolucio2007/bazaargo/internal/chatbot/service"
+	"github.com/alvarolucio2007/bazaargo/internal/telemetry"
 	"google.golang.org/genai"
 )
 
@@ -19,55 +20,97 @@ func main() {
 	ctx := context.Background()
 
 	if err := app.LoadEnv(".env"); err != nil {
-		log.Fatalf("main:error while trying to read env: %v", err)
+		if !os.IsNotExist(err) {
+			log.Fatalf("main:error while trying to read env: %v", err)
+		}
 	}
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-
-	dbURL := os.Getenv("DATABASE_LOCAL_URL")
+	otelLoggerAddr := os.Getenv("OTEL_LOGGER")
+	if otelLoggerAddr == "" {
+		otelLoggerAddr = "localhost:4318"
+	}
+	lp, err := telemetry.InitLogger(ctx, otelLoggerAddr, "bazaargo-chat")
+	if err != nil {
+		panic("failed to initialize logger provider: " + err.Error())
+	}
+	defer func() {
+		if err := lp.Shutdown(ctx); err != nil {
+			log.Println("failed to shutdown logger provider:", err)
+		}
+	}()
+	logger := logger.NewSlog("bazaargo-chat")
+	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
 		dbURL = "postgresql://admin:root@localhost:5432/bazaargo?sslmode=disable"
 	}
 
 	db, err := pgvector.NewConn(dbURL, 20, 10, time.Minute)
 	if err != nil {
-		log.Fatalf("error while connecting to DB: %v", err)
+		logger.Error("error while connecting to DB", "error", err)
+		os.Exit(1)
 	}
 	defer func() {
 		if err := db.Close(); err != nil {
-			log.Printf("error while closing DB: %v", err)
+			logger.Error("error while closing DB", "error", err)
+			os.Exit(1)
 		}
 	}()
 
-	// 3. Instanciando o VectorStore (Faltava essa linha!)
 	pgStore := pgvector.NewVectorStore(db, logger)
 
-	// 4. Configurando o Gemini
 	apiKey := os.Getenv("GEMINI_API_KEY")
 	if apiKey == "" {
-		log.Fatal("api key empty bro check yo .env")
+		logger.Error("Gemini API key is empty")
+		os.Exit(1)
 	}
 
 	client, err := genai.NewClient(ctx, &genai.ClientConfig{
 		APIKey: apiKey,
 	})
 	if err != nil {
-		log.Fatalf("error while creating genai client: %v", err)
+		logger.Error("error while creating genai client", "error", err)
+		os.Exit(1)
 	}
 
-	// 5. Instanciando o Adapter do Gemini
 	geminiAdapter := gemini.NewGeminiAdapter(client)
 
-	// 6. Injetando tudo no Service
 	chatSvc := service.NewChatService(geminiAdapter, pgStore, geminiAdapter)
 
-	// 7. Configurando o Handler HTTP
-	handler := httpadapter.NewChatHandler(chatSvc) // Assumindo que você criou esse construtor no pacote http
+	handler := httpadapter.NewChatHandler(chatSvc, logger) // Assumindo que você criou esse construtor no pacote http
 
+	logger.Info("starting telemetry")
+	otelAddr := os.Getenv("OTEL_ENDPOINT")
+	if otelAddr == "" {
+		otelAddr = "localhost:4317"
+	}
+	tp, err := telemetry.InitTracer(ctx, otelAddr, "bazaargo-chat")
+	if err != nil {
+		logger.Error("failed to initialize tracer", "error", err)
+		os.Exit(1)
+	}
+	defer func() {
+		if err := tp.Shutdown(ctx); err != nil {
+			logger.Error("failed to shutdown tracer", "error", err)
+		}
+	}()
+	mp, err := telemetry.InitMetrics(ctx, otelAddr, "bazaargo-chat")
+	if err != nil {
+		logger.Error("failed to initialize metrics", "error", err)
+		os.Exit(1)
+	}
+	defer func() {
+		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		if err := mp.Shutdown(ctx); err != nil {
+			logger.Error("failed to shutdown metrics", "error", err)
+		}
+	}()
+
+	logger.Info("tracer started successfully")
 	addr := os.Getenv("SERVER_ADDR")
 	if addr == "" {
-		addr = "127.0.0.1:8081"
+		addr = "127.0.0.1:9090"
 	}
-	log.Println("starting server yo")
+	logger.Info("starting server")
 	if err := handler.Run(handler.Mount(), addr); err != nil {
 		logger.Error("main: error while booting HTTP server", "error", err)
 		os.Exit(1)

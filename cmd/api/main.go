@@ -19,7 +19,7 @@ func main() {
 	if otelLoggerAddr == "" {
 		otelLoggerAddr = "localhost:4318"
 	}
-	lp, err := telemetry.InitLogger(context.Background(), otelLoggerAddr)
+	lp, err := telemetry.InitLogger(context.Background(), otelLoggerAddr, "bazaargo-api")
 	if err != nil {
 		panic("failed to initialize logger provider: " + err.Error())
 	}
@@ -29,7 +29,7 @@ func main() {
 		}
 	}()
 
-	logger := logger.NewSlog()
+	logger := logger.NewSlog("bazaargo-chat")
 	logger.Info("starting app")
 	symmetricKey, err := app.GenerateSymmetricKey()
 	if err != nil {
@@ -111,7 +111,7 @@ func main() {
 	if otelAddr == "" {
 		otelAddr = "localhost:4317"
 	}
-	tp, err := telemetry.InitTracer(context.Background(), otelAddr)
+	tp, err := telemetry.InitTracer(context.Background(), otelAddr, "bazaargo-api")
 	if err != nil {
 		logger.Error("failed to initialize tracer", "error", err)
 		os.Exit(1)
@@ -121,7 +121,7 @@ func main() {
 			logger.Error("failed to shutdown tracer", "error", err)
 		}
 	}()
-	mp, err := telemetry.InitMetrics(context.Background(), otelAddr)
+	mp, err := telemetry.InitMetrics(context.Background(), otelAddr, "bazaargo-api")
 	if err != nil {
 		logger.Error("failed to initialize metrics", "error", err)
 		os.Exit(1)

@@ -11,7 +11,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
-func InitLogger(ctx context.Context, url string) (*log.LoggerProvider, error) {
+func InitLogger(ctx context.Context, url, name string) (*log.LoggerProvider, error) {
 	exporter, err := otlploghttp.New(ctx,
 		otlploghttp.WithEndpoint(url),
 		otlploghttp.WithInsecure(),
@@ -22,7 +22,7 @@ func InitLogger(ctx context.Context, url string) (*log.LoggerProvider, error) {
 
 	res, _ := resource.New(ctx,
 		resource.WithAttributes(
-			semconv.ServiceName("bazaargo-api"),
+			semconv.ServiceName(name),
 			semconv.ServiceVersion("1.0.0"),
 		),
 	)

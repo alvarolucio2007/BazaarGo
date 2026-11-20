@@ -8,4 +8,5 @@ import (
 
 type VectorStore interface {
 	SearchSimilar(ctx context.Context, embedding []float32, limit int) ([]domain.DocumentChunk, error)
+	Ping(ctx context.Context) error
 }

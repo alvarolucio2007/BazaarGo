@@ -6,9 +6,12 @@ import (
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"go.opentelemetry.io/otel"
 )
 
 const PGVectorQueryTimeout time.Duration = 5 * time.Second
+
+var tracer = otel.Tracer("bazaargo-chat/internal/pgvector")
 
 func NewConn(addr string, maxOpenConns, maxIdleConns int, maxIdleTime time.Duration) (*sql.DB, error) {
 	db, err := sql.Open("pgx", addr)

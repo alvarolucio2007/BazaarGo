@@ -60,22 +60,6 @@ services:
       timeout: 5s
       retries: 5
 
-  mongo-express:
-    image: mongo-express:1.0.2-20-alpine3.19
-    container_name: bazaar-mongo-express
-    restart: unless-stopped
-    ports:
-      - "8081:8081"
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
-      ME_CONFIG_MONGODB_ADMINPASSWORD: admin123
-      ME_CONFIG_MONGODB_URL: mongodb://admin:admin123@mongo:27017/
-      ME_CONFIG_BASICAUTH_USERNAME: meu_usuario
-      ME_CONFIG_BASICAUTH_PASSWORD: minha_senha
-    depends_on:
-      mongo:
-        condition: service_healthy
-
   otel-lgtm:
     image: grafana/otel-lgtm:0.40.0
     container_name: bazaar-otel-lgtm
@@ -91,8 +75,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1.5g
-          cpus: "1.0"
+          memory: 2g
+          cpus: "2.0"
         reservations:
           memory: 256m
 
@@ -136,6 +120,34 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 1m
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+  chat:
+    build:
+      context: .
+      dockerfile: ./internal/chatbot/Dockerfile
+    container_name: bazaar-chat
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://admin:root@db:5432/bazaargo?sslmode=disable
+      - OTEL_ENDPOINT=otel-lgtm:4317
+      - OTEL_LOGGER=otel-lgtm:4318
+      - SERVER_ADDR=0.0.0.0:9090
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.chat.rule=Host(`chat.localhost`)"
+      - "traefik.http.services.chat.loadbalancer.server.port=9090"
+    depends_on:
+      db:
+        condition: service_healthy
+      otel-lgtm:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9090/health"]
       interval: 1m
       timeout: 3s
       retries: 3
