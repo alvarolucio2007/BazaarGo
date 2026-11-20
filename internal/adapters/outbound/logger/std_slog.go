@@ -8,8 +8,8 @@ import (
 )
 
 // NewSlog creates a new [slog.Logger] OTel Handler.
-func NewSlog() *slog.Logger {
-	handler := otelslog.NewHandler("bazaargo-api")
+func NewSlog(name string) *slog.Logger {
+	handler := otelslog.NewHandler(name)
 	return slog.New(handler)
 }
 
