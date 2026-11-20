@@ -12,7 +12,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
-func InitTracer(ctx context.Context, url string) (*sdktrace.TracerProvider, error) {
+func InitTracer(ctx context.Context, url, name string) (*sdktrace.TracerProvider, error) {
 	exporter, err := otlptracegrpc.New(ctx,
 		otlptracegrpc.WithEndpoint(url),
 		otlptracegrpc.WithInsecure(),
@@ -24,7 +24,7 @@ func InitTracer(ctx context.Context, url string) (*sdktrace.TracerProvider, erro
 
 	res, _ := resource.New(ctx,
 		resource.WithAttributes(
-			semconv.ServiceName("bazaargo-api"),
+			semconv.ServiceName(name),
 			semconv.ServiceVersion("1.0.0"),
 		),
 	)

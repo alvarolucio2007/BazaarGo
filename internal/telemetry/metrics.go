@@ -12,7 +12,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
-func InitMetrics(ctx context.Context, url string) (*metric.MeterProvider, error) {
+func InitMetrics(ctx context.Context, url, name string) (*metric.MeterProvider, error) {
 	exporter, err := otlpmetricgrpc.New(ctx,
 		otlpmetricgrpc.WithEndpoint(url),
 		otlpmetricgrpc.WithInsecure(),
@@ -24,7 +24,7 @@ func InitMetrics(ctx context.Context, url string) (*metric.MeterProvider, error)
 
 	res, _ := resource.New(ctx,
 		resource.WithAttributes(
-			semconv.ServiceName("bazaargo-api"),
+			semconv.ServiceName(name),
 			semconv.ServiceVersion("1.0.0"),
 		),
 	)
