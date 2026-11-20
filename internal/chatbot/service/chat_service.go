@@ -69,3 +69,9 @@ CONTEXTO:
 
 PERGUNTA DO USUÁRIO: %s`, contexto.String(), question) //prompt is in portuguese, because our userbase is portuguese (whos gonna be reading this anyway???)
 }
+
+func (s *ChatService) HealthCheck(ctx context.Context) error {
+	ctx, span := tracer.Start(ctx, "ChatService.Ping")
+	defer span.End()
+	return s.store.Ping(ctx)
+}
