@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/alvarolucio2007/bazaargo/internal/chatbot/domain"
 	"github.com/alvarolucio2007/bazaargo/internal/chatbot/service"
@@ -12,11 +13,12 @@ var _ StrictServerInterface = (*ChatHandler)(nil)
 var tracer = otel.Tracer("bazaargo-chatbot/internal/http")
 
 type ChatHandler struct {
-	svc *service.ChatService
+	svc    *service.ChatService
+	logger *slog.Logger
 }
 
-func NewChatHandler(svc *service.ChatService) *ChatHandler {
-	return &ChatHandler{svc: svc}
+func NewChatHandler(svc *service.ChatService, logger *slog.Logger) *ChatHandler {
+	return &ChatHandler{svc: svc, logger: logger}
 }
 
 // Chat implements [StrictServerInterface].
