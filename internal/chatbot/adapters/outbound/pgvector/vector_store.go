@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/alvarolucio2007/bazaargo/internal/chatbot/domain"
 	"github.com/alvarolucio2007/bazaargo/internal/chatbot/ports"
@@ -54,4 +55,13 @@ func (v *VectorStore) SearchSimilar(ctx context.Context, embedding []float32, li
 		return nil, fmt.Errorf("postgres: iterate documents: %w", err)
 	}
 	return documents, nil
+}
+
+// Ping implements [ports.VectorStore].
+func (v *VectorStore) Ping(ctx context.Context) error {
+	ctx, span := tracer.Start(ctx, "VectorAdapter.Ping")
+	defer span.End()
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+	return v.db.PingContext(ctx)
 }
