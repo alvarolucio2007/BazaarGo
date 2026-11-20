@@ -36,6 +36,11 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
+// HealthResponse defines model for HealthResponse.
+type HealthResponse struct {
+	PostgresHealth bool `json:"postgres_health"`
+}
+
 // ChatJSONRequestBody defines body for Chat for application/json ContentType.
 type ChatJSONRequestBody = ChatRequest
 
@@ -44,6 +49,9 @@ type ServerInterface interface {
 
 	// (POST /chat)
 	Chat(w http.ResponseWriter, r *http.Request)
+
+	// (GET /health)
+	HealthCheck(w http.ResponseWriter, r *http.Request)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -52,6 +60,11 @@ type Unimplemented struct{}
 
 // (POST /chat)
 func (_ Unimplemented) Chat(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /health)
+func (_ Unimplemented) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -69,6 +82,20 @@ func (siw *ServerInterfaceWrapper) Chat(w http.ResponseWriter, r *http.Request) 
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.Chat(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// HealthCheck operation middleware
+func (siw *ServerInterfaceWrapper) HealthCheck(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.HealthCheck(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -192,6 +219,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/health", wrapper.HealthCheck)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/chat", wrapper.Chat)
 	})
 
@@ -248,11 +278,49 @@ func (response Chat500JSONResponse) VisitChatResponse(w http.ResponseWriter) err
 	return err
 }
 
+type HealthCheckRequestObject struct {
+}
+
+type HealthCheckResponseObject interface {
+	VisitHealthCheckResponse(w http.ResponseWriter) error
+}
+
+type HealthCheck200JSONResponse HealthResponse
+
+func (response HealthCheck200JSONResponse) VisitHealthCheckResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type HealthCheck500JSONResponse HealthResponse
+
+func (response HealthCheck500JSONResponse) VisitHealthCheckResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 
 	// (POST /chat)
 	Chat(ctx context.Context, request ChatRequestObject) (ChatResponseObject, error)
+
+	// (GET /health)
+	HealthCheck(ctx context.Context, request HealthCheckRequestObject) (HealthCheckResponseObject, error)
 }
 
 type StrictHandlerFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request, request any) (any, error)
@@ -325,17 +393,42 @@ func (sh *strictHandler) Chat(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// HealthCheck operation middleware
+func (sh *strictHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
+	var request HealthCheckRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.HealthCheck(ctx, request.(HealthCheckRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "HealthCheck")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(HealthCheckResponseObject); ok {
+		if err := validResponse.VisitHealthCheckResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
 // Stored as a slice of fixed-width chunks rather than one concatenated
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"vFJNT+swEPwr0b53jJq8Dy65UYRQb4geEQfX2RJXqdfddYpKlf+ObAdC1SAuFbfN7nhnMjtH0LR1ZNF6",
-	"geoIohvcqljeNMo/4K5D8eHTMTlkbzAOY9uQDbU/OIQKxLOxz9D3OTDuOsNYQ/U4Ip/ydyStNqg99PnA",
-	"IY6s4DmJsvKCPEGRg1DHOqGMx61MgoaGYlaHM13D8nHVlL5bZuKvBWIYf29Bgp3vDzhj1xQ3GN+G2Vy9",
-	"KsV3lAVrVuSz6/sF5LBHlmg3/JmVszJoI4dWOQMV/IutHJzyTdRV6Ealo1E6XhCtwhUWNVTRdUgSUfyc",
-	"6kPAaLIebYQr51qj44NiI2THZITqN+MaKvhVjNEp0lSKz6HpT33w3GFsJDej0L9leWHq4VSRu0bRbFzK",
-	"afzrbNlpjSLrrg0W/r8g/WlUJvjnqs4+rMnh6ie5F9YjW9VmS+Q9chYfBGDf928DAA==",
+	"vFNNb9NAEP0r1sDRqsPXxTdSIcgFIXpECG3Wk3iLs7OdGReFyv8d7TjFTeOql0AuWc+8mffm6w487RJF",
+	"jCpQ34H4FnfOnpet069406No/kxMCVkDmtPMgWJ+6z4h1CDKIW5hGEpgvOkDYwP1twn5vbxH0voavcJQ",
+	"HjgkURQ8JXFRfiHPUJQg1LMfUUFxJ7Ogg8Exu/2JrkPyKdWcvg/MxE8LxOx+vgUjbC7/J3Sdtk8TJBLd",
+	"MsqP1oAPqNZEHbp4wvU44pQ1R4S4IUsWtMu+pfvtHH+kIg9kTVq8/7KCEm6RxYYMry4WF4usmBJGlwLU",
+	"8MZMJSSnrYmtfOv0XnX+z5W4PPtVA7XNGkaxKLqkZp8xnqJiNLhLqQveAqproTjtY369ZNxADS+qaWGr",
+	"0SvVw1Udjjui3KMZxhab0NeLxZmpD/Mz7gbFc0jjdVjVxVXvPYps+i638O0Z6Y8XdIZ/6Zrib2tKePc/",
+	"uVdRkaPriivkW+TCAjJwKKGaNnqLM9syXsZli/4n/MPxPTrAmSJGxN4u4swNfJ78M2lxJMB+fwYA",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
