@@ -28,6 +28,8 @@ func NewVectorStore(db *sql.DB, logger *slog.Logger) *VectorStore {
 //
 // Returns a slice of [domain.DocumentChunk] ordered by similarity, or an error if the query fails.
 func (v *VectorStore) SearchSimilar(ctx context.Context, embedding []float32, limit int) ([]domain.DocumentChunk, error) {
+	ctx, span := tracer.Start(ctx, "VectorAdapter.SearchSimilar")
+	defer span.End()
 	ctx, cancel := context.WithTimeout(ctx, PGVectorQueryTimeout)
 	defer cancel()
 	query := "SELECT title, content FROM documents ORDER BY embedding <=> $1 LIMIT $2;"

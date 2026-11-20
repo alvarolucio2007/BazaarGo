@@ -5,9 +5,11 @@ import (
 
 	"github.com/alvarolucio2007/bazaargo/internal/chatbot/domain"
 	"github.com/alvarolucio2007/bazaargo/internal/chatbot/service"
+	"go.opentelemetry.io/otel"
 )
 
 var _ StrictServerInterface = (*ChatHandler)(nil)
+var tracer = otel.Tracer("bazaargo-chatbot/internal/http")
 
 type ChatHandler struct {
 	svc *service.ChatService
@@ -19,6 +21,8 @@ func NewChatHandler(svc *service.ChatService) *ChatHandler {
 
 // Chat implements [StrictServerInterface].
 func (c *ChatHandler) Chat(ctx context.Context, request ChatRequestObject) (ChatResponseObject, error) {
+	ctx, span := tracer.Start(ctx, "ServerHandler.Chat")
+	defer span.End()
 	answer, err := c.svc.Ask(ctx, domain.ChatRequest{Question: request.Body.Question})
 	if err != nil {
 		return nil, err

@@ -12,6 +12,8 @@ var _ ports.LLM = (*GeminiAdapter)(nil)
 
 // GenerateAnswer implements [ports.LLM].
 func (g *GeminiAdapter) GenerateAnswer(ctx context.Context, prompt string) (string, error) {
+	ctx, span := tracer.Start(ctx, "GeminiAdapter.GenerateAnswer")
+	defer span.End()
 	contents := []*genai.Content{
 		{Parts: []*genai.Part{{Text: prompt}}},
 	}

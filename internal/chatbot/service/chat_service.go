@@ -7,6 +7,7 @@ import (
 
 	"github.com/alvarolucio2007/bazaargo/internal/chatbot/domain"
 	"github.com/alvarolucio2007/bazaargo/internal/chatbot/ports"
+	"go.opentelemetry.io/otel"
 )
 
 // ChatService implements the use cases related to the chatbot.
@@ -21,7 +22,11 @@ func NewChatService(embedder ports.Embedder, vectorStore ports.VectorStore, llm 
 	return &ChatService{embedder: embedder, store: vectorStore, llm: llm}
 }
 
+var tracer = otel.Tracer("bazaargo-chat/service/chat-service")
+
 func (s *ChatService) Ask(ctx context.Context, req domain.ChatRequest) (domain.ChatResponse, error) {
+	ctx, span := tracer.Start(ctx, "ChatService.Ask")
+	defer span.End()
 	if err := req.Validate(); err != nil {
 		return domain.ChatResponse{}, err
 	}

@@ -12,6 +12,8 @@ var _ ports.Embedder = (*GeminiAdapter)(nil)
 
 // GenerateEmbedding implements [ports.Embedder].
 func (g *GeminiAdapter) GenerateEmbedding(ctx context.Context, text string) ([]float32, error) {
+	ctx, span := tracer.Start(ctx, "GeminiAdapter.GenerateEmbedding")
+	defer span.End()
 	contents := []*genai.Content{
 		{Parts: []*genai.Part{{Text: text}}},
 	}
