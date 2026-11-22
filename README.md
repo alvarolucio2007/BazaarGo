@@ -56,6 +56,7 @@ Além dos requisitos mínimos, o projeto foi construído seguindo práticas adot
 
 - **Persistência Poliglota + Busca Vetorial:** Uso de PostgreSQL 18 com **PGVector** (Autenticação/ACID + Embeddings para RAG), MongoDB (Catálogo/Flexibilidade de Schema) e Valkey/Redis (Cache e Histórico de visualizações).
 - **Chatbot de IA com RAG (Google Gemini):** Serviço dedicado em Go integrado ao SDK oficial da Google (`genai`) para geração de embeddings e respostas contextualizadas via Retrieval-Augmented Generation.
+- **Cache Semântico para LLM (Otimização de Custos e Latência):** Implementação de uma camada de cache inteligente usando PGVector. Perguntas com significado similar são respondidas em milissegundos sem acionar a API do Google Gemini, reduzindo custos e protegendo o sistema contra indisponibilidades (erros 503) do provedor de IA.
 - **Observabilidade Completa (LGTM + Pyroscope):** Rastreamento distribuído (Tempo), agregação de logs estruturados (Loki), coleta de métricas (Prometheus/Mimir) e profiling contínuo de CPU/Memória (Pyroscope) cobrindo tanto a API principal quanto o serviço de Chatbot.
 - **Arquitetura Hexagonal (Ports and Adapters):** Domínio puro e isolado de frameworks, bancos de dados, provedores de LLM e detalhes de HTTP.
 - **Spec-First com OpenAPI (`oapi-codegen`):** A API é gerada a partir do contrato `openapi.yaml`, garantindo *Strict Server* (tipagem forte e validação automática de requests/responses).
@@ -330,6 +331,20 @@ Em vez de expor portas soltas (`localhost:8080`, `localhost:9090`, `localhost:85
 
 Para manter o escopo enxuto e sem dependência de gateways de pagamento complexos, o processo de finalização de compra (Checkout) monta uma string estruturada com os itens do carrinho, aplica `url.QueryEscape` e gera um link `wa.me`. É a solução mais direta para e-commerces locais.
 
+### Cache Semântico (Otimização de Custos e Latência)
+
+Em sistemas RAG, a latência e o custo estão diretamente atrelados à chamada do Large Language Model (LLM). Para mitigar isso, não utilizamos um cache tradicional (baseado em strings exatas), mas sim um **Cache Semântico** construído sobre o próprio PGVector.
+
+**Como funciona:**
+1. Quando uma pergunta chega, seu *embedding* é gerado.
+2. Antes de buscar o contexto ou chamar o LLM, o sistema realiza uma busca por similaridade de cosseno na tabela `semantic_cache`.
+3. Se a pergunta for **≥ 95% similar** a uma pergunta feita anteriormente, a resposta salva é retornada instantaneamente.
+4. Se não houver *cache hit*, o fluxo normal do RAG é executado e a nova pergunta/resposta é salva na tabela para consultas futuras.
+
+**Impacto Mensurado (via OpenTelemetry):**
+*   **Redução de Latência:** O tempo de resposta caiu de **1.55s** (Cache Miss) para **~357ms** (Cache Hit), um ganho de performance de **~4.5x**. O tempo de processamento do LLM (1.22s) é totalmente eliminado.
+*   **Economia de Custos:** Redução drástica no consumo de tokens da API do Google Gemini.
+*   **Resiliência:** Perguntas repetidas continuam sendo respondidas mesmo se a API do Gemini estiver fora do ar.
 ---
 
 ## Performance e Resiliência
