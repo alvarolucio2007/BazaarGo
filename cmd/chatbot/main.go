@@ -56,6 +56,7 @@ func main() {
 	}()
 
 	pgStore := pgvector.NewVectorStore(db, logger)
+	pgCache := pgvector.NewSemanticCache(db)
 
 	apiKey := os.Getenv("GEMINI_API_KEY")
 	if apiKey == "" {
@@ -73,9 +74,9 @@ func main() {
 
 	geminiAdapter := gemini.NewGeminiAdapter(client)
 
-	chatSvc := service.NewChatService(geminiAdapter, pgStore, geminiAdapter)
+	chatSvc := service.NewChatService(geminiAdapter, pgStore, geminiAdapter, pgCache, logger)
 
-	handler := httpadapter.NewChatHandler(chatSvc, logger) // Assumindo que você criou esse construtor no pacote http
+	handler := httpadapter.NewChatHandler(chatSvc, logger)
 
 	logger.Info("starting telemetry")
 	otelAddr := os.Getenv("OTEL_ENDPOINT")
