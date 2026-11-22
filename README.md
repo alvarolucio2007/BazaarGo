@@ -154,19 +154,20 @@ flowchart TD
 BazaarGo/
 ├── cmd/
 │   ├── api/                 # Entrypoint da API principal (Go)
-│   └── chatbot/             # Entrypoint do microsserviço de Chatbot IA (Go)
+│   ├── chatbot/             # Entrypoint do microsserviço de Chatbot IA (Go)
+│   └── seed/                # Script para popular o banco vetorial com FAQs
 ├── internal/
 │   ├── domain/              # Entidades (User, Product, Chat) e regras puras
 │   ├── ports/               # Interfaces (Repositories, Cache, Auth, VectorStore, LLM)
 │   ├── service/             # Casos de uso (UserService, ProductService, ChatService)
 │   ├── telemetry/           # Setup do OpenTelemetry (Traces, Metrics, Logs)
-│   ├── chatbot/             # Dockerfile e configurações específicas do serviço de IA
+│   ├── chatbot/             # Domínio e lógica específica do serviço de IA
 │   └── adapters/
 │       ├── inbound/http/    # Handlers (OpenAPI e Chat), middlewares e rotas
 │       └── outbound/        # Implementações (Postgres, PGVector, MongoDB, Valkey, Gemini, PASETO, Argon2)
 ├── api/
-│   ├─── openapi.yaml         # A "Fonte da Verdade" do contrato da API
-│   └──chatbot.yaml         # A "Fonte da Verdade" do contrato do chatbot
+│   ├── openapi.yaml         # A "Fonte da Verdade" do contrato da API
+│   └── chatbot.yaml         # A "Fonte da Verdade" do contrato do chatbot
 ├── database/
 │   └── migrations/          # Scripts SQL para o PostgreSQL e extensão PGVector
 ├── front/                   # Aplicações Python (Vitrine e Admin em Streamlit)
@@ -242,7 +243,7 @@ Servido pelo microsserviço `bazaar-chat` ([http://chat.localhost](http://chat.l
 ### Requisitos
 
 - Docker e Docker Compose
-- Chave de API do Google Gemini (`GEMINI_API_KEY`) configurada no `.env`
+- Chave de API do Google Gemini (`GEMINI_API_KEY`)
 - Make (Opcional)
 
 ### Passos
@@ -253,26 +254,44 @@ Servido pelo microsserviço `bazaar-chat` ([http://chat.localhost](http://chat.l
 git clone https://github.com/seu-usuario/bazaargo.git
 cd bazaargo
 cp .env.example .env
-# Edite o .env e adicione sua GEMINI_API_KEY
+```
 
+Configure o seu `.env` com as seguintes variáveis:
+
+```env
+DATABASE_URL=postgres://admin:root@db:5432/bazaargo?sslmode=disable
+MONGO_URL=mongodb://admin:admin123@mongo:27017/bazaargo?authSource=admin
+CACHE_URL=cache:6379
+SERVER_ADDR=0.0.0.0:8080
+GEMINI_API_KEY=sua_chave_aqui
 ```
 
 **2. Suba a stack completa (Traefik, Go API, Go Chatbot, Bancos, LGTM)**
 
 ```bash
 docker compose up -d --build
-
 ```
 
-**3. Acesse as aplicações via Traefik:**
+**3. Popule o banco de dados vetorial (PGVector)**
+Para que o assistente de IA funcione, é necessário ingerir a base de conhecimento (FAQs) e gerar os embeddings via Gemini. Execute o script de seed:
+
+```bash
+# Se estiver rodando os containers
+docker compose exec api go run cmd/seed/main.go
+
+# Ou se estiver rodando localmente
+go run cmd/seed/main.go
+```
+
+**4. Acesse as aplicações via Traefik:**
 O Traefik gerencia as rotas baseadas em subdomínios locais (padrão na maioria dos SOs modernos).
 
-- **Vitrine (Cliente):** `[http://front.localhost](http://front.localhost)`
-- **Painel Admin (Streamlit):** `[http://admin.localhost](http://admin.localhost)`
-- **API Core (Swagger):** `[http://api.localhost/swagger/index.html](http://api.localhost/swagger/index.html)`
-- **Chatbot IA (Swagger):** `[http://chat.localhost/swagger/index.html](http://chat.localhost/swagger/index.html)`
-- **Observabilidade (Grafana LGTM):** `[http://telemetry.localhost](http://telemetry.localhost)`
-- **Dashboard Traefik:** `http://localhost:8080`
+- **Vitrine (Cliente):** <http://front.localhost>
+- **Painel Admin (Streamlit):** <http://admin.localhost>
+- **API Core (Swagger):** <http://api.localhost/swagger/index.html>
+- **Chatbot IA (Swagger):** <http://chat.localhost/swagger/index.html>
+- **Observabilidade (Grafana LGTM):** <http://telemetry.localhost>
+- **Dashboard Traefik:** <http://localhost:8080>
 
 ---
 
