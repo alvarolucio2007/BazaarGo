@@ -90,13 +90,37 @@ class Admin:
 
         try:
             health = self.client.health_check()
-            if all(health.values()):
-                st.success("Sistemas operacionais e bancos de dados conectados.")
-            else:
-                st.warning("Algum serviço pode estar instável.")
-                st.json(health)
         except Exception as e:
-            st.error(f"Falha ao conectar com a API: {e}")
+            if hasattr(e, "response") and e.response is not None:  # pyright: ignore[reportAttributeAccessIssue]
+                try:
+                    health = e.response.json()  # pyright: ignore[reportAttributeAccessIssue]
+                except ValueError:
+                    st.error(f"Falha ao conectar com a API: {e}")
+                    return
+            else:
+                st.error(f"Falha ao conectar com a API: {e}")
+                return
+
+        if all(health.values()):
+            st.success("Todos os sistemas operacionais e bancos de dados estão conectados.")
+        else:
+            st.warning("Atenção: um ou mais serviços apresentaram instabilidade.")
+
+        servicos = [
+            ("PostgreSQL", health.get("postgres_health", False)),
+            ("MongoDB", health.get("mongo_health", False)),
+            ("Valkey", health.get("valkey_health", False)),
+        ]
+
+        cols = st.columns(len(servicos))
+        for col, (nome, ativo) in zip(cols, servicos):
+            with col:
+                st.metric(
+                    label=nome,
+                    value="Online" if ativo else "Offline",
+                    delta="Operacional" if ativo else "Falha na conexão",
+                    delta_color="normal" if ativo else "inverse",
+                )
 
     def render_produtos(self) -> None:
         st.title("Gerenciamento de Produtos")
@@ -107,7 +131,6 @@ class Admin:
         except Exception as e:
             st.error(f"Erro ao buscar produtos: {e}")
 
-        # --- CADASTRO DE NOVO PRODUTO ---
         with st.expander("➕ Cadastrar Novo Produto", expanded=False):
             with st.form("form_novo_produto"):
                 nome = st.text_input("Nome do produto")
@@ -125,7 +148,6 @@ class Admin:
                 if enviar:
                     if nome.strip():
                         try:
-                            # Converte a string do JSON para dicionário Python
                             specs_dict = json.loads(specs_input) if specs_input.strip() else {}
 
                             self.client.create_product(
@@ -166,7 +188,6 @@ class Admin:
         if not df.empty:
             st.dataframe(df, use_container_width=True)
 
-        # --- EDIÇÃO E EXCLUSÃO DE PRODUTO ---
         with st.expander("✏️ Editar ou Excluir Produto", expanded=False):
             opcoes = {f"{p.name} (ID: {p.id})": p for p in produtos}
             produto_selecionado_nome = st.selectbox("Selecione o produto:", list(opcoes.keys()))
@@ -182,7 +203,6 @@ class Admin:
                     edit_estoque = st.number_input("Estoque", value=int(prod.stock))
                     edit_cat = st.text_input("Categoria ID", value=prod.category_id)
 
-                    # Converte o dicionário atual de specs para string JSON para preencher o input
                     specs_atual_str = json.dumps(prod.specs, ensure_ascii=False) if prod.specs else "{}"
                     edit_specs_input = st.text_area("Specs (JSON)", value=specs_atual_str)
 
