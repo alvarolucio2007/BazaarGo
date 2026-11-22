@@ -12,136 +12,586 @@
       "id": "faq-001",
       "category": "pedidos_e_compras",
       "question": "Como faço para realizar um pedido na BazaarGo?",
-      "answer": "Para comprar na BazaarGo, navegue pelo catálogo, escolha a variação desejada (tamanho, cor ou voltagem), clique em 'Adicionar ao carrinho' e acesse o checkout. Informe seu endereço de entrega, selecione a forma de pagamento e confirme o pedido. Você receberá a confirmação por e-mail e poderá acompanhar tudo em 'Meus Pedidos'.",
-      "keywords": ["comprar", "fazer pedido", "carrinho", "checkout", "finalizar compra"],
+      "answer": "Para comprar na BazaarGo, navegue pelo catálogo no site, escolha a variação desejada (tamanho, cor ou voltagem), adicione os itens ao carrinho e clique em 'Finalizar pelo WhatsApp'. Seu carrinho é enviado automaticamente para o nosso WhatsApp oficial, onde um atendente ou assistente confirma seu endereço, calcula o frete final, envia o link ou chave de pagamento e conclui o pedido com você.",
+      "keywords": ["comprar", "fazer pedido", "carrinho", "whatsapp", "finalizar compra"],
       "priority": "high",
-      "last_updated": "2026-11-19"
+      "last_updated": "2026-11-21"
     },
     {
       "id": "faq-002",
       "category": "pedidos_e_compras",
-      "question": "Posso alterar ou cancelar um pedido após a confirmação?",
-      "answer": "Você pode cancelar um pedido gratuitamente em 'Meus Pedidos' enquanto o status ainda estiver como 'Aguardando pagamento' ou 'Pagamento aprovado' antes da emissão da nota fiscal/separação. Caso já tenha sido faturado ou despachado, o cancelamento pode ser solicitado como devolução após o recebimento. Alterações de itens ou endereço após a confirmação não são permitidas; nesse caso, cancele e faça um novo pedido.",
-      "keywords": ["cancelar pedido", "alterar pedido", "mudar endereço", "desistir da compra"],
+      "question": "Posso alterar ou cancelar um pedido após enviar o carrinho no WhatsApp?",
+      "answer": "Sim. Como o fechamento acontece diretamente na conversa do WhatsApp, você pode pedir para adicionar, remover itens ou alterar o endereço antes da confirmação do pagamento e emissão da nota fiscal. Caso o pedido já tenha sido pago e despachado, o cancelamento pode ser solicitado como devolução pelo próprio WhatsApp após o recebimento.",
+      "keywords": ["cancelar pedido", "alterar pedido", "mudar endereço", "desistir da compra", "whatsapp"],
       "priority": "high",
-      "last_updated": "2026-11-19"
+      "last_updated": "2026-11-21"
     },
     {
       "id": "faq-003",
       "category": "pagamentos",
       "question": "Quais formas de pagamento a BazaarGo aceita?",
-      "answer": "A BazaarGo aceita Pix (com aprovação imediata e eventual desconto promocional quando indicado na página do produto), cartões de crédito das principais bandeiras (Visa, Mastercard, Elo, American Express e Hipercard) com parcelamento conforme condições exibidas no checkout, e boleto bancário.",
-      "keywords": ["pagamento", "pix", "cartão de crédito", "parcelamento", "boleto"],
+      "answer": "A BazaarGo aceita Pix (com aprovação imediata e eventual desconto promocional quando indicado na página do produto), cartões de crédito das principais bandeiras (Visa, Mastercard, Elo, American Express e Hipercard) via link de pagamento seguro enviado no WhatsApp com opção de parcelamento, e boleto bancário.",
+      "keywords": ["pagamento", "pix", "cartão de crédito", "parcelamento", "boleto", "link de pagamento"],
       "priority": "high",
-      "last_updated": "2026-11-19"
+      "last_updated": "2026-11-21"
     },
     {
       "id": "faq-004",
       "category": "pagamentos",
       "question": "Qual é o prazo de aprovação do pagamento?",
-      "answer": "Pagamentos via Pix costumam ser aprovados em poucos segundos. Compras com cartão de crédito geralmente são confirmadas em poucos minutos, podendo levar até 48 horas em casos de análise de segurança. Boletos bancários levam de 1 a 2 dias úteis após o pagamento para compensação.",
+      "answer": "Pagamentos via Pix costumam ser aprovados em poucos segundos após o envio do comprovante ou confirmação automática. Compras via link de cartão de crédito geralmente são confirmadas em poucos minutos, podendo levar até 48 horas em casos de análise de segurança. Boletos bancários levam de 1 a 2 dias úteis após o pagamento para compensação.",
       "keywords": ["aprovação pagamento", "prazo pix", "demora cartão", "compensação boleto"],
       "priority": "medium",
-      "last_updated": "2026-11-19"
+      "last_updated": "2026-11-21"
     },
     {
       "id": "faq-005",
       "category": "pagamentos",
       "question": "Como funciona o uso de cupons de desconto e vale-compras?",
-      "answer": "Na etapa de carrinho ou checkout, insira o código do cupom no campo 'Cupom de desconto' e clique em aplicar. Cada cupom possui regras próprias, como valor mínimo, categorias elegíveis, limite por CPF e validade. Cupons geralmente não são cumulativos entre si, salvo quando a promoção indicar explicitamente.",
+      "answer": "Você pode inserir o código do cupom no carrinho do navegador antes de enviar o pedido ou informar o código diretamente na conversa do WhatsApp para nossa equipe aplicar o desconto. Cada cupom possui regras próprias, como valor mínimo, categorias elegíveis, limite por CPF e validade, e não são cumulativos entre si salvo indicação expressa.",
       "keywords": ["cupom", "desconto", "vale-compra", "código promocional", "promoção"],
       "priority": "medium",
-      "last_updated": "2026-11-19"
+      "last_updated": "2026-11-21"
     },
     {
       "id": "faq-006",
       "category": "frete_e_entrega",
       "question": "Como calculo o frete e o prazo de entrega?",
-      "answer": "Na página de qualquer produto ou no carrinho, digite seu CEP no campo de cálculo de frete para ver as modalidades disponíveis, valores e prazos estimados. O prazo começa a contar após a confirmação do pagamento e a emissão da nota fiscal, em dias úteis.",
+      "answer": "Você pode simular o frete informando seu CEP na página do produto ou no carrinho do site, e também confirmamos o valor exato e as modalidades disponíveis (entrega local, motoboy ou transportadora) diretamente no WhatsApp após você informar o endereço completo. O prazo começa a contar após a confirmação do pagamento.",
       "keywords": ["frete", "prazo de entrega", "calcular cep", "envio", "dias úteis"],
       "priority": "high",
-      "last_updated": "2026-11-19"
+      "last_updated": "2026-11-21"
     },
     {
       "id": "faq-007",
       "category": "frete_e_entrega",
       "question": "Como rastrear a minha entrega?",
-      "answer": "Acesse 'Meus Pedidos' na sua conta BazaarGo e clique no pedido desejado para ver o status atualizado e o código de rastreamento, quando disponível. Você também recebe notificações por e-mail nas principais etapas do envio.",
+      "answer": "Assim que o pedido é despachado, enviamos o código de rastreamento e o link da transportadora diretamente no seu WhatsApp. Caso tenha optado por criar uma conta no site, você também pode acompanhar o andamento em 'Meus Pedidos'.",
       "keywords": ["rastrear", "rastreamento", "onde está meu pedido", "código de rastreio", "entrega"],
       "priority": "high",
-      "last_updated": "2026-11-19"
+      "last_updated": "2026-11-21"
     },
     {
       "id": "faq-008",
       "category": "frete_e_entrega",
       "question": "O que acontece se não houver ninguém para receber no endereço?",
-      "answer": "A transportadora realiza tentativas de entrega no endereço informado durante o horário comercial. Caso não haja recebedor ou o acesso seja restringido, o pedido pode retornar ao centro de distribuição ou à agência parceira conforme a regra da transportadora. Mantenha alguém disponível e acompanhe o rastreio em 'Meus Pedidos'.",
+      "answer": "A transportadora ou entregador realiza tentativas de entrega no endereço informado durante o horário comercial. Caso não haja recebedor ou o acesso seja restringido, o pedido pode retornar ao centro de distribuição ou à agência parceira, e nossa equipe avisará você pelo WhatsApp para reagendar ou orientar a retirada.",
       "keywords": ["ausente", "ninguém para receber", "tentativa de entrega", "pedido voltou", "transportadora"],
       "priority": "medium",
-      "last_updated": "2026-11-19"
+      "last_updated": "2026-11-21"
     },
     {
       "id": "faq-009",
       "category": "trocas_e_devolucoes",
       "question": "Como funciona a devolução por arrependimento (direito de arrependimento)?",
-      "answer": "Você pode solicitar a devolução por arrependimento em até 7 dias corridos após o recebimento do produto, conforme o Código de Defesa do Consumidor. O item deve estar sem uso, com embalagem original, manuais, acessórios e nota fiscal. Após a conferência do produto devolvido, o reembolso é processado conforme o meio de pagamento original.",
+      "answer": "Você pode solicitar a devolução por arrependimento em até 7 dias corridos após o recebimento do produto, conforme o Código de Defesa do Consumidor, entrando em contato pelo nosso WhatsApp oficial com o número do pedido. O item deve estar sem uso, com embalagem original, manuais, acessórios e nota fiscal.",
       "keywords": ["arrependimento", "devolução", "7 dias", "cdc", "devolver produto"],
       "priority": "high",
-      "last_updated": "2026-11-19"
+      "last_updated": "2026-11-21"
     },
     {
       "id": "faq-010",
       "category": "trocas_e_devolucoes",
       "question": "O que fazer se o produto chegar com defeito ou avariado?",
-      "answer": "Se o produto apresentar defeito de fabricação ou avaria no transporte, abra uma solicitação em 'Meus Pedidos' informando o ocorrido e anexando fotos ou vídeos nítidos do item, da embalagem e da etiqueta. Nossa equipe orientará o envio para análise ou troca conforme a política aplicável e os prazos legais.",
+      "answer": "Se o produto apresentar defeito de fabricação ou avaria no transporte, envie uma mensagem no nosso WhatsApp oficial informando o número do pedido e anexando fotos ou vídeos nítidos do item, da embalagem e da etiqueta. Nossa equipe orientará o envio para análise ou troca sem custos.",
       "keywords": ["defeito", "avariado", "quebrado", "danificado", "troca por defeito"],
       "priority": "high",
-      "last_updated": "2026-11-19"
+      "last_updated": "2026-11-21"
     },
     {
       "id": "faq-011",
       "category": "trocas_e_devolucoes",
       "question": "Em quanto tempo recebo o reembolso após uma devolução?",
-      "answer": "O reembolso é iniciado após o recebimento e a conferência do produto devolvido. Em compras via Pix ou boleto, a restituição ocorre na conta informada ou via estorno/transferência conforme o fluxo do checkout dentro do prazo informado na confirmação da devolução. Em cartão de crédito, o estorno é solicitado à administradora e pode aparecer em até uma ou duas faturas subsequentes, dependendo do fechamento da fatura.",
+      "answer": "O reembolso é iniciado após o recebimento e a conferência do produto devolvido. Em compras via Pix ou boleto, a restituição é feita na conta informada no atendimento via WhatsApp dentro do prazo combinado. Em cartão de crédito, o estorno é solicitado à administradora e pode aparecer em até uma ou duas faturas subsequentes.",
       "keywords": ["reembolso", "estorno", "dinheiro de volta", "prazo estorno", "fatura cartão"],
       "priority": "medium",
-      "last_updated": "2026-11-19"
+      "last_updated": "2026-11-21"
     },
     {
       "id": "faq-012",
       "category": "conta_e_seguranca",
       "question": "Como recupero minha senha ou atualizo meus dados cadastrais?",
-      "answer": "Para redefinir a senha, clique em 'Esqueci minha senha' na tela de login e siga as instruções enviadas para o seu e-mail cadastrado. Para atualizar dados como telefone ou endereços salvos, acesse 'Minha Conta' após fazer login.",
+      "answer": "Como não é obrigatório ter login para comprar na BazaarGo, você pode atualizar seu endereço de entrega ou telefone diretamente na conversa do WhatsApp antes de fechar cada pedido. Caso tenha criado uma conta opcional no site, clique em 'Esqueci minha senha' na tela de login para redefinir o acesso ou edite seus dados em 'Minha Conta'.",
       "keywords": ["senha", "esqueci minha senha", "login", "cadastro", "atualizar dados"],
       "priority": "medium",
-      "last_updated": "2026-11-19"
+      "last_updated": "2026-11-21"
     },
     {
       "id": "faq-013",
       "category": "conta_e_seguranca",
       "question": "A BazaarGo é segura? Como meus dados pessoais e de pagamento são protegidos?",
-      "answer": "Sim. A BazaarGo utiliza conexão criptografada (HTTPS) e adota práticas de segurança alinhadas à Lei Geral de Proteção de Dados (LGPD) para proteger informações pessoais e transações. Dados de cartão são processados por gateways de pagamento seguros e não ficam expostos em texto puro.",
-      "keywords": ["segurança", "lgpd", "dados pessoais", "site confiável", "fraude"],
+      "answer": "Sim. O site da BazaarGo utiliza conexão criptografada (HTTPS) e adota práticas alinhadas à Lei Geral de Proteção de Dados (LGPD). No fechamento pelo WhatsApp, você nunca precisa digitar números de cartão na conversa: todos os pagamentos em cartão são processados por links oficiais de gateways certificados.",
+      "keywords": ["segurança", "lgpd", "dados pessoais", "site confiável", "fraude", "whatsapp seguro"],
       "priority": "medium",
-      "last_updated": "2026-11-19"
+      "last_updated": "2026-11-21"
     },
     {
       "id": "faq-014",
       "category": "produtos_e_garantia",
       "question": "Os produtos vendidos na BazaarGo têm nota fiscal e garantia?",
-      "answer": "Sim. Compras na BazaarGo acompanham nota fiscal eletrônica (NF-e), disponível para download em 'Meus Pedidos' e enviada ao seu e-mail. Os produtos contam com garantia legal e, quando aplicável, garantia contratual do fabricante conforme especificado na página do item.",
+      "answer": "Sim. Mesmo comprando sem cadastro no site, emitimos a nota fiscal eletrônica (NF-e) com o CPF ou CNPJ informado no fechamento pelo WhatsApp e enviamos o PDF/XML diretamente na sua conversa e por e-mail. Os produtos contam com garantia legal e garantia contratual do fabricante conforme especificado na página do item.",
       "keywords": ["nota fiscal", "nf-e", "garantia", "fabricante", "original"],
       "priority": "high",
-      "last_updated": "2026-11-19"
+      "last_updated": "2026-11-21"
     },
     {
       "id": "faq-015",
       "category": "atendimento",
       "question": "Como falar com o suporte da BazaarGo e qual é o horário de atendimento?",
-      "answer": "Você pode falar com o suporte da BazaarGo pelos canais oficiais informados na central de ajuda do site ou dentro de 'Meus Pedidos' (quando o atendimento for referente a uma compra específica). O atendimento humano funciona em horário comercial em dias úteis; tenha em mãos o número do pedido para agilizar.",
-      "keywords": ["suporte", "atendimento", "falar com atendente", "ajuda", "horário de atendimento"],
+      "answer": "Todo o atendimento e fechamento de pedidos da BazaarGo é centralizado no nosso WhatsApp oficial, acessível pelo botão flutuante no site ou após enviar seu carrinho. O atendimento humano funciona em horário comercial em dias úteis, e fora desse horário nosso assistente virtual registra suas dúvidas e pedidos.",
+      "keywords": ["suporte", "atendimento", "falar com atendente", "ajuda", "horário de atendimento", "whatsapp"],
       "priority": "medium",
-      "last_updated": "2026-11-19"
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-016",
+      "category": "pedidos_e_compras",
+      "question": "Posso comprar na BazaarGo sem criar uma conta ou fazer login?",
+      "answer": "Sim! Na BazaarGo você não precisa criar conta nem fazer login para comprar. Basta montar seu carrinho no navegador e clicar para enviar o pedido ao nosso WhatsApp. Por lá, solicitamos apenas os dados essenciais para a entrega e emissão da nota fiscal (nome, endereço e CPF/CNPJ).",
+      "keywords": ["comprar sem cadastro", "sem login", "visitante", "não precisa de conta", "whatsapp"],
+      "priority": "high",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-017",
+      "category": "pedidos_e_compras",
+      "question": "O que acontece depois que eu envio meu carrinho do site para o WhatsApp?",
+      "answer": "Ao clicar em finalizar no navegador, uma mensagem formatada com todos os itens, quantidades e valores do seu carrinho é aberta no nosso WhatsApp oficial. Assim que você envia a mensagem, confirmamos a disponibilidade em estoque, calculamos o frete para o seu endereço e enviamos o link de pagamento ou chave Pix para concluir a compra.",
+      "keywords": ["fluxo whatsapp", "enviar carrinho", "depois do carrinho", "fechar pedido whatsapp"],
+      "priority": "high",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-018",
+      "category": "pedidos_e_compras",
+      "question": "Posso comprar para CNPJ (Pessoa Jurídica) na BazaarGo?",
+      "answer": "Sim. Ao finalizar o carrinho pelo WhatsApp, basta informar o CNPJ ativo, a razão social, a Inscrição Estadual (quando aplicável) e o endereço fiscal para que nossa equipe emita a nota fiscal corporativa corretamente.",
+      "keywords": ["cnpj", "pessoa jurídica", "empresa", "compra corporativa", "inscrição estadual"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-019",
+      "category": "pedidos_e_compras",
+      "question": "Existe limite de quantidade de itens por pedido?",
+      "answer": "Alguns produtos promocionais ou itens de grande porte podem ter limite máximo de unidades por CPF ou por pedido. Caso você precise de quantidades maiores ou compra em atacado, pode consultar condições especiais diretamente pelo WhatsApp ao enviar o seu carrinho.",
+      "keywords": ["limite de quantidade", "máximo de unidades", "comprar em atacado", "restrição carrinho"],
+      "priority": "low",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-020",
+      "category": "pedidos_e_compras",
+      "question": "Coloquei um item no carrinho do navegador, ele fica reservado para mim?",
+      "answer": "Não. Enquanto os itens estão apenas no carrinho do navegador, o estoque e o preço promocional ainda não estão reservados. A reserva do produto só acontece após o envio do carrinho no WhatsApp e a confirmação do pagamento.",
+      "keywords": ["reserva de estoque", "item no carrinho", "preço mudou", "produto esgotou no carrinho"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-021",
+      "category": "pedidos_e_compras",
+      "question": "Por que os itens do meu pedido foram divididos em mais de uma entrega?",
+      "answer": "Quando você compra produtos armazenados em centros de distribuição diferentes ou vendidos por lojistas parceiros distintos, o envio pode ser dividido para agilizar a entrega. Nossa equipe informará os prazos e códigos de rastreamento de cada pacote diretamente no seu WhatsApp.",
+      "keywords": ["entrega dividida", "dois pacotes", "pedidos separados", "envio parcial", "marketplace"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-022",
+      "category": "pedidos_e_compras",
+      "question": "Posso enviar um pedido como presente?",
+      "answer": "Sim. Na conversa do WhatsApp, basta informar o endereço e o nome completo da pessoa que vai receber o presente, além dos seus dados para emissão da nota fiscal. Quando disponível, também podemos incluir um bilhete personalizado.",
+      "keywords": ["presente", "enviar para outra pessoa", "embrulho para presente", "endereço de terceiro"],
+      "priority": "low",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-023",
+      "category": "pagamentos",
+      "question": "Posso pagar uma compra usando dois cartões de crédito diferentes?",
+      "answer": "Sim. Caso queira dividir o valor total entre dois cartões de crédito, basta solicitar essa opção ao atendente no WhatsApp antes do pagamento para que geremos dois links de pagamento separados com os valores combinados.",
+      "keywords": ["dois cartões", "dividir pagamento", "pagar com 2 cartões", "combinar pagamento"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-024",
+      "category": "pagamentos",
+      "question": "Posso combinar Pix e cartão de crédito no mesmo pedido?",
+      "answer": "Sim! Como o fechamento é feito pelo WhatsApp, você pode pedir para pagar uma entrada via Pix e o restante no link de cartão de crédito, ou combinar um vale-compras com qualquer outra forma de pagamento.",
+      "keywords": ["pix e cartão", "combinar pix", "pagamento misto", "vale-compras e cartão"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-025",
+      "category": "pagamentos",
+      "question": "Por que meu pagamento no link de cartão de crédito foi recusado?",
+      "answer": "A recusa pode ocorrer por limite insuficiente, dados digitados incorretamente (validade, CVV ou nome do titular), bloqueio preventivo do banco emissor ou reprovação na análise antifraude. Recomendamos conferir os dados, contatar o banco ou solicitar a troca para Pix no WhatsApp.",
+      "keywords": ["cartão recusado", "pagamento não aprovado", "erro no cartão", "compra negada", "link recusado"],
+      "priority": "high",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-026",
+      "category": "pagamentos",
+      "question": "O código Pix ou link de pagamento expirou antes de eu pagar. O que devo fazer?",
+      "answer": "Os códigos Pix Copia e Cola e links de pagamento têm prazo de validade informado no momento do envio. Se expirar, basta responder na mesma conversa do WhatsApp pedindo a reemissão do link ou código atualizado, sem precisar montar o carrinho novamente.",
+      "keywords": ["pix expirou", "link vencido", "gerar novo pix", "prazo código pix"],
+      "priority": "high",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-027",
+      "category": "pagamentos",
+      "question": "Como consigo segunda via do boleto bancário?",
+      "answer": "Enquanto o boleto estiver dentro do prazo de vencimento, você pode solicitar o reenvio do PDF ou da linha digitável diretamente na conversa do WhatsApp. Caso tenha vencido, nossa equipe emite um novo boleto atualizado para você.",
+      "keywords": ["segunda via boleto", "boleto vencido", "imprimir boleto", "linha digitável"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-028",
+      "category": "pagamentos",
+      "question": "O parcelamento no cartão de crédito tem juros?",
+      "answer": "A BazaarGo oferece parcelamento sem juros até um número determinado de parcelas conforme o valor do pedido ou campanhas vigentes. Acima desse limite, podem incidir juros informados antes de você acessar o link de pagamento, onde você escolhe a quantidade exata de parcelas.",
+      "keywords": ["parcelas sem juros", "juros no cartão", "quantidade de parcelas", "condições parcelamento"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-029",
+      "category": "pagamentos",
+      "question": "Por que o valor final ficou diferente do preço exibido na vitrine?",
+      "answer": "Alguns produtos exibem o preço promocional exclusivo para pagamento à vista no Pix. Ao optar por cartão de crédito parcelado ou boleto durante o fechamento no WhatsApp, aplica-se o preço padrão do item somado ao valor do frete escolhido.",
+      "keywords": ["preço diferente", "desconto pix", "valor mudou", "preço à vista"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-030",
+      "category": "pagamentos",
+      "question": "Posso alterar a forma de pagamento depois de receber o link no WhatsApp?",
+      "answer": "Sim, desde que o pagamento ainda não tenha sido concluído. Basta avisar na conversa do WhatsApp que deseja mudar de boleto para Pix ou cartão (ou vice-versa), e nossa equipe cancela a cobrança anterior e envia a nova.",
+      "keywords": ["trocar forma de pagamento", "mudar parcelas", "alterar boleto para pix"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-031",
+      "category": "frete_e_entrega",
+      "question": "A BazaarGo oferece frete grátis?",
+      "answer": "Sim, o frete grátis está disponível em produtos selecionados, campanhas promocionais ou para pedidos acima de determinado valor mínimo conforme a sua região. Você pode conferir na simulação de CEP no site ou confirmar com nossa equipe ao enviar o carrinho no WhatsApp.",
+      "keywords": ["frete grátis", "entrega gratuita", "valor mínimo frete grátis", "promoção frete"],
+      "priority": "high",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-032",
+      "category": "frete_e_entrega",
+      "question": "Vocês realizam entregas em todo o Brasil?",
+      "answer": "Sim, a BazaarGo entrega em todos os estados brasileiros por meio de transportadoras parceiras e Correios, além de oferecer entrega expressa local em cidades atendidas. Em áreas com restrição de entrega domiciliar, o pedido ficará disponível para retirada na agência indicada no rastreamento.",
+      "keywords": ["entrega em todo brasil", "área de cobertura", "restrição de entrega", "retirar nos correios"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-033",
+      "category": "frete_e_entrega",
+      "question": "O rastreamento mostra 'Pedido entregue', mas eu não recebi. O que faço?",
+      "answer": "Primeiro, verifique se algum familiar, vizinho, porteiro ou recepção do prédio recebeu a encomenda em seu nome. Caso ninguém tenha recebido, avise imediatamente nosso suporte no WhatsApp em até 48 horas informando o número do pedido para abrirmos uma acareação junto à transportadora.",
+      "keywords": ["consta como entregue", "não recebi pedido", "pedido extraviado", "porteiro recebeu", "acareação"],
+      "priority": "high",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-034",
+      "category": "frete_e_entrega",
+      "question": "Meu pedido está atrasado. Como proceder?",
+      "answer": "Se a data estimada de entrega já passou, envie uma mensagem no nosso WhatsApp com o número do pedido. Nossa equipe verificará junto à transportadora eventuais ocorrências climáticas ou operacionais e cobrará agilidade ou oferecerá alternativas.",
+      "keywords": ["pedido atrasado", "atraso na entrega", "prazo vencido", "encomenda parada"],
+      "priority": "high",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-035",
+      "category": "frete_e_entrega",
+      "question": "Posso agendar data ou horário específico para a entrega?",
+      "answer": "As entregas via transportadora ocorrem de segunda a sexta-feira, das 8h às 18h (e aos sábados em algumas regiões), sem horário exato. Para entregas locais via motoboy ou modalidades agendadas disponíveis para o seu CEP, você pode combinar o melhor turno diretamente no WhatsApp.",
+      "keywords": ["agendar entrega", "horário de entrega", "entrega aos sábados", "turno de entrega", "motoboy"],
+      "priority": "low",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-036",
+      "category": "frete_e_entrega",
+      "question": "A BazaarGo possui opção de retirada em loja física ou ponto de coleta?",
+      "answer": "Sim, para cidades atendidas e produtos selecionados, oferecemos retirada em pontos parceiros ou retirada presencial. Ao fechar seu carrinho no WhatsApp, informe que deseja retirar o pedido para receber o endereço e o horário de disponibilidade.",
+      "keywords": ["retirar na loja", "ponto de coleta", "retirada presencial", "retirada"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-037",
+      "category": "frete_e_entrega",
+      "question": "O entregador sobe escadas ou elevador para entregar móveis e eletrodomésticos grandes?",
+      "answer": "As transportadoras realizam a entrega até a portaria do condomínio ou porta de entrada térrea. Para subir escadas ou usar elevadores, o transporte interno depende da viabilidade de acesso e das normas do local; não realizamos içamento por janelas ou sacadas nem desmontagem de portas.",
+      "keywords": ["entrega de móveis", "subir escada", "elevador", "portaria", "produto grande"],
+      "priority": "low",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-038",
+      "category": "frete_e_entrega",
+      "question": "O que devo fazer se a caixa chegar violada ou molhada no ato da entrega?",
+      "answer": "Recuse o recebimento imediatamente e anote o motivo (embalagem violada, molhada ou avariada) no verso do comprovante de entrega ou conhecimento de transporte. Em seguida, envie uma foto e avise nosso suporte no WhatsApp para providenciarmos o reenvio ou cancelamento.",
+      "keywords": ["caixa violada", "embalagem aberta", "recusar entrega", "caixa molhada", "avaria no transporte"],
+      "priority": "high",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-039",
+      "category": "trocas_e_devolucoes",
+      "question": "Como funciona a troca de tamanho ou cor de roupas e calçados?",
+      "answer": "Você pode solicitar a troca de tamanho ou cor em até 30 dias corridos após o recebimento, desde que a peça esteja com etiqueta fixada, sem sinais de uso ou lavagem e na embalagem original. Basta chamar no nosso WhatsApp com o número do pedido para receber as instruções de postagem gratuita.",
+      "keywords": ["trocar tamanho", "trocar cor", "roupa não serviu", "calçado apertado", "prazo de troca"],
+      "priority": "high",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-040",
+      "category": "trocas_e_devolucoes",
+      "question": "Preciso pagar pelo frete de devolução?",
+      "answer": "Não. Tanto na devolução por arrependimento dentro de 7 dias corridos quanto em casos de defeito ou erro no envio, a BazaarGo envia pelo WhatsApp um código de postagem reversa gratuita nos Correios ou agenda coleta sem custos para você.",
+      "keywords": ["frete de devolução", "logística reversa", "código de postagem", "devolução grátis"],
+      "priority": "high",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-041",
+      "category": "trocas_e_devolucoes",
+      "question": "Recebi um produto diferente do que comprei ou faltando acessórios. Como resolver?",
+      "answer": "Entre em contato pelo nosso WhatsApp oficial em até 7 dias após o recebimento informando o número do pedido e enviando fotos do produto recebido e da etiqueta da caixa. Enviaremos a peça correta ou faremos a troca sem custo adicional.",
+      "keywords": ["produto errado", "item trocado", "faltando peça", "pedido incompleto", "erro no envio"],
+      "priority": "high",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-042",
+      "category": "trocas_e_devolucoes",
+      "question": "Posso devolver apenas um item de um pedido que tinha vários produtos?",
+      "answer": "Sim, a devolução parcial é permitida. Informe no WhatsApp quais itens do pedido deseja devolver e o estorno será calculado proporcionalmente ao valor pago pelos produtos devolvidos.",
+      "keywords": ["devolução parcial", "devolver um item", "estorno parcial", "vários itens"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-043",
+      "category": "trocas_e_devolucoes",
+      "question": "Existem produtos que não podem ser trocados ou devolvidos?",
+      "answer": "Por questões de higiene e segurança, peças íntimas, biquínis sem lacre de proteção, cosméticos abertos, fones de ouvido intra-auriculares com lacre violado e itens personalizados sob encomenda não são elegíveis para troca por tamanho ou arrependimento após violação do lacre, exceto em caso de defeito de fabricação.",
+      "keywords": ["itens sem troca", "peça íntima", "lacre violado", "produto personalizado", "exceções devolução"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-044",
+      "category": "trocas_e_devolucoes",
+      "question": "Como funciona o reembolso via vale-compras na BazaarGo?",
+      "answer": "Ao solicitar uma devolução pelo WhatsApp, você pode optar por receber o reembolso em forma de Vale-Compras BazaarGo em vez de estorno bancário. Após a conferência do item devolvido, geramos um código exclusivo vinculado ao seu CPF para você usar em qualquer nova compra.",
+      "keywords": ["vale-compras", "crédito na loja", "reembolso rápido", "saldo bazaargo"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-045",
+      "category": "trocas_e_devolucoes",
+      "question": "Joguei a caixa original fora. Ainda consigo devolver o produto?",
+      "answer": "Para devolução por arrependimento em até 7 dias, o produto deve estar preferencialmente na embalagem original para garantir sua integridade no transporte. Em caso de defeito dentro da garantia, você pode enviá-lo em uma caixa parda bem protegida, acompanhado de todos os acessórios e da nota fiscal.",
+      "keywords": ["sem caixa original", "embalagem original", "joguei a caixa fora", "condições devolução"],
+      "priority": "low",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-046",
+      "category": "conta_e_seguranca",
+      "question": "Como a BazaarGo identifica meus pedidos se eu não fiz login no site?",
+      "answer": "Seus pedidos ficam vinculados ao número do pedido gerado no atendimento, ao seu CPF/CNPJ e ao número de WhatsApp utilizado na compra. Sempre que precisar consultar o status, pedir segunda via de nota fiscal ou solicitar suporte, basta chamar pelo mesmo WhatsApp ou informar seu CPF.",
+      "keywords": ["identificar pedido", "sem login", "consultar pedido", "histórico whatsapp", "cpf"],
+      "priority": "high",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-047",
+      "category": "conta_e_seguranca",
+      "question": "Se eu fechar o navegador, perco os itens do meu carrinho?",
+      "answer": "O carrinho fica salvo temporariamente no armazenamento local do seu navegador no mesmo dispositivo. Porém, como não há login obrigatório, se você limpar os dados do navegador ou acessar de outro aparelho, o carrinho começará vazio — por isso recomendamos enviar o carrinho para o WhatsApp assim que escolher os produtos.",
+      "keywords": ["perdi o carrinho", "carrinho sumiu", "salvar carrinho", "navegador", "local storage"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-048",
+      "category": "conta_e_seguranca",
+      "question": "Como solicito a exclusão dos meus dados pessoais (LGPD)?",
+      "answer": "Em conformidade com a LGPD, você pode solicitar a exclusão dos seus dados cadastrais e histórico de atendimento entrando em contato pelo nosso WhatsApp oficial ou e-mail de privacidade. Lembre-se de que registros fiscais obrigatórios por lei são mantidos pelo prazo legal.",
+      "keywords": ["excluir dados", "apagar dados", "lgpd", "privacidade"],
+      "priority": "low",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-049",
+      "category": "conta_e_seguranca",
+      "question": "Recebi uma mensagem suspeita em nome da BazaarGo. Como identificar golpes?",
+      "answer": "A BazaarGo nunca solicita sua senha, código de verificação bancária ou fotos/números do seu cartão de crédito na conversa do WhatsApp, e utiliza apenas o número oficial com selo verificado linkado no nosso site. Nunca faça transferências Pix para contas de pessoa física; o recebedor oficial é sempre o CNPJ da BazaarGo.",
+      "keywords": ["golpe", "phishing", "whatsapp falso", "mensagem suspeita", "pix oficial"],
+      "priority": "high",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-050",
+      "category": "conta_e_seguranca",
+      "question": "Meus dados de cartão ficam salvos quando pago pelo link no WhatsApp?",
+      "answer": "Não. Como a compra não exige login e o pagamento é feito em link externo certificado pelo gateway de pagamento, a BazaarGo não armazena nem tem acesso aos dados do seu cartão de crédito após a transação.",
+      "keywords": ["dados do cartão", "link de pagamento", "segurança cartão", "armazenamento"],
+      "priority": "low",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-051",
+      "category": "produtos_e_garantia",
+      "question": "Todos os produtos da BazaarGo são originais?",
+      "answer": "Sim. A BazaarGo trabalha diretamente com fabricantes, distribuidores oficiais e lojistas parceiros homologados que passam por rigorosa verificação documental. Todos os produtos são novos, lacrados e acompanham nota fiscal.",
+      "keywords": ["produto original", "autenticidade", "produto novo", "procedência", "falsificação"],
+      "priority": "high",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-052",
+      "category": "produtos_e_garantia",
+      "question": "O que são produtos vendidos e entregues por lojistas parceiros (Marketplace)?",
+      "answer": "Além do estoque próprio da BazaarGo, nosso catálogo conta com vendedores parceiros selecionados. Na página do produto você vê quem vende e quem entrega, e todo o processo de montagem do carrinho e fechamento pelo WhatsApp continua centralizado com a garantia da BazaarGo.",
+      "keywords": ["marketplace", "lojista parceiro", "vendido e entregue por", "vendedor terceiro"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-053",
+      "category": "produtos_e_garantia",
+      "question": "Como acionar a garantia do fabricante após o prazo de 7 dias da loja?",
+      "answer": "Após o prazo de troca inicial da BazaarGo, caso o produto apresente defeito técnico dentro do período de garantia contratual (geralmente 90 dias a 12 meses), você deve acionar a assistência técnica autorizada do fabricante apresentando a Nota Fiscal eletrônica (NF-e) enviada no seu WhatsApp/e-mail.",
+      "keywords": ["acionar garantia", "assistência técnica", "garantia fabricante", "defeito após 7 dias"],
+      "priority": "high",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-054",
+      "category": "produtos_e_garantia",
+      "question": "Como baixar a segunda via da Nota Fiscal (NF-e) do meu pedido?",
+      "answer": "Assim que o pedido é faturado, enviamos o arquivo PDF e XML da Nota Fiscal eletrônica diretamente no seu WhatsApp e e-mail. Caso precise da segunda via, basta solicitar na conversa do WhatsApp informando o seu CPF ou o número do pedido.",
+      "keywords": ["baixar nota fiscal", "segunda via nf-e", "xml nota", "comprovante fiscal"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-055",
+      "category": "produtos_e_garantia",
+      "question": "Um produto está esgotado no catálogo. Como sei quando ele volta ao estoque?",
+      "answer": "Na página do produto esgotado, você pode clicar em 'Avise-me' ou chamar diretamente no nosso WhatsApp para consultar a previsão de reposição e até reservar uma unidade do próximo lote.",
+      "keywords": ["produto esgotado", "avise-me", "reposição de estoque", "volta ao estoque"],
+      "priority": "low",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-056",
+      "category": "produtos_e_garantia",
+      "question": "Como verifico a voltagem ou as dimensões exatas antes de comprar?",
+      "answer": "Na página de cada produto, role até a seção 'Especificações Técnicas' para conferir voltagem (110V, 220V ou Bivolt), dimensões, peso, material e itens inclusos na caixa. Se ainda tiver dúvida antes de fechar, pode perguntar direto no WhatsApp após enviar o carrinho.",
+      "keywords": ["voltagem", "110v ou 220v", "bivolt", "dimensões", "especificações técnicas"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-057",
+      "category": "produtos_e_garantia",
+      "question": "A BazaarGo oferece serviço de montagem ou instalação de produtos?",
+      "answer": "Não oferecemos serviço próprio de montagem de móveis ou instalação de eletrodomésticos e ar-condicionado. Os produtos acompanham manual de instruções e kit de ferragens para montagem, devendo ser contratado um profissional especializado quando necessário.",
+      "keywords": ["montagem de móveis", "instalação", "montador", "instalar ar condicionado"],
+      "priority": "low",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-058",
+      "category": "atendimento",
+      "question": "Como acompanhar um atendimento ou pedido já iniciado?",
+      "answer": "Todo o histórico fica registrado na própria conversa com o nosso WhatsApp oficial. Basta mandar um 'Oi' ou o número do seu protocolo/pedido na mesma conversa para consultar o status atualizado com nossa equipe.",
+      "keywords": ["protocolo", "acompanhar chamado", "status atendimento", "histórico suporte", "whatsapp"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-059",
+      "category": "atendimento",
+      "question": "Como avalio um produto comprado ou deixo feedback sobre a entrega?",
+      "answer": "Após a entrega do pedido, enviamos uma pesquisa rápida no seu WhatsApp e um link para avaliar os produtos adquiridos no catálogo da BazaarGo, ajudando outros clientes na escolha.",
+      "keywords": ["avaliar produto", "deixar comentário", "review", "opinião sobre compra", "feedback"],
+      "priority": "low",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-060",
+      "category": "atendimento",
+      "question": "Como parar de receber mensagens promocionais no WhatsApp ou e-mail?",
+      "answer": "Para deixar de receber novidades e ofertas promocionais no WhatsApp, basta responder 'SAIR' na conversa ou avisar nosso atendimento. Você continuará recebendo apenas atualizações essenciais sobre pedidos que estiverem em andamento.",
+      "keywords": ["cancelar mensagens", "parar de receber ofertas", "descadastrar whatsapp", "notificações"],
+      "priority": "low",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-061",
+      "category": "programa_de_fidelidade",
+      "question": "Como funciona o programa de cashback vinculado ao CPF na BazaarGo?",
+      "answer": "Mesmo sem precisar criar senha ou login no site, toda compra concluída acumula cashback vinculado diretamente ao seu CPF. Após 7 dias da entrega, você pode resgatar o saldo informando seu CPF ao fechar um novo carrinho pelo WhatsApp.",
+      "keywords": ["cashback", "pontos", "fidelidade", "cpf", "desconto próxima compra"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-062",
+      "category": "programa_de_fidelidade",
+      "question": "O cashback acumulado no meu CPF tem prazo de validade?",
+      "answer": "Sim. O saldo de cashback padrão tem validade de 90 dias a partir da data de liberação, enquanto créditos de campanhas sazonais podem ter prazos específicos. Você pode consultar seu saldo disponível a qualquer momento pelo nosso WhatsApp.",
+      "keywords": ["validade cashback", "expiração pontos", "consultar cashback", "usar cashback"],
+      "priority": "low",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-063",
+      "category": "programa_de_fidelidade",
+      "question": "O que acontece com meu cashback se eu cancelar ou devolver o pedido?",
+      "answer": "Caso um pedido seja cancelado ou devolvido, o cashback gerado por aquela compra é estornado automaticamente. Se você utilizou saldo de cashback para abater o valor de um pedido cancelado, o crédito retorna para o seu CPF com o prazo original de validade.",
+      "keywords": ["estorno cashback", "devolução com cashback", "cancelamento pontos", "saldo devolvido"],
+      "priority": "low",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-064",
+      "category": "pedidos_e_compras",
+      "question": "Posso pedir itens que não encontrei no catálogo do navegador pelo WhatsApp?",
+      "answer": "Sim! Caso você não encontre uma cor, tamanho ou produto específico no catálogo online, basta nos chamar no WhatsApp que nossa equipe verifica a disponibilidade no estoque físico ou sob encomenda e monta o pedido para você.",
+      "keywords": ["produto fora do site", "encomenda", "pedir pelo whatsapp", "consultar estoque"],
+      "priority": "medium",
+      "last_updated": "2026-11-21"
+    },
+    {
+      "id": "faq-065",
+      "category": "atendimento",
+      "question": "Como posso me tornar um lojista parceiro e vender na BazaarGo?",
+      "answer": "Para vender seus produtos no catálogo da BazaarGo, acesse o link 'Venda na BazaarGo' no rodapé do site ou chame nossa equipe comercial pelo WhatsApp informando seu CNPJ ativo e catálogo inicial para análise.",
+      "keywords": ["vender na bazaargo", "ser parceiro", "abrir loja", "marketplace seller", "lojista"],
+      "priority": "low",
+      "last_updated": "2026-11-21"
     }
   ]
 }
