@@ -1,36 +1,36 @@
 # BazaarGo
 
-* [BazaarGo](https://www.google.com/search?q=%23bazaargo)
-* [Visão geral](https://www.google.com/search?q=%23vis%C3%A3o-geral)
-* [Diferenciais do projeto](https://www.google.com/search?q=%23diferenciais-do-projeto)
-* [Stack de tecnologias](https://www.google.com/search?q=%23stack-de-tecnologias)
-* [Arquitetura](https://www.google.com/search?q=%23arquitetura)
-* [Estrutura do projeto](https://www.google.com/search?q=%23estrutura-do-projeto)
-
-* [Banco de dados (Persistência Poliglota)](https://www.google.com/search?q=%23banco-de-dados-persist%C3%AAncia-poliglota)
-* [SGBDs Utilizados](https://www.google.com/search?q=%23sgbds-utilizados)
-* [Modelagem de Dados](https://www.google.com/search?q=%23modelagem-de-dados)
-
-* [Endpoints da API](https://www.google.com/search?q=%23endpoints-da-api)
-* [Infraestrutura & Autenticação](https://www.google.com/search?q=%23infraestrutura--autentica%C3%A7%C3%A3o)
-* [Catálogo de Produtos](https://www.google.com/search?q=%23cat%C3%A1logo-de-produtos)
-* [Checkout](https://www.google.com/search?q=%23checkout)
-* [Assistente de IA (Chatbot & RAG)](https://www.google.com/search?q=%23assistente-de-ia-chatbot--rag)
-
-* [Como executar](https://www.google.com/search?q=%23como-executar)
-* [Requisitos](https://www.google.com/search?q=%23requisitos)
-* [Passos](https://www.google.com/search?q=%23passos)
-
-* [Decisões de projeto](https://www.google.com/search?q=%23decis%C3%B5es-de-projeto)
-* [Arquitetura Hexagonal](https://www.google.com/search?q=%23arquitetura-hexagonal)
-* [Spec-First com OpenAPI](https://www.google.com/search?q=%23spec-first-com-openapi)
-* [Assistente de IA com RAG e PGVector](https://www.google.com/search?q=%23assistente-de-ia-com-rag-e-pgvector)
-* [Observabilidade de Nível de Produção](https://www.google.com/search?q=%23observabilidade-de-n%C3%ADvel-de-produ%C3%A7%C3%A3o)
-* [Roteamento com Traefik](https://www.google.com/search?q=%23roteamento-com-traefik)
-* [Integração com WhatsApp](https://www.google.com/search?q=%23integra%C3%A7%C3%A3o-com-whatsapp)
-
-* [Performance e Resiliência](https://www.google.com/search?q=%23performance-e-resili%C3%AAncia)
-* [Licença](https://www.google.com/search?q=%23licen%C3%A7a)
+<!--toc:start-->
+- [BazaarGo](#bazaargo)
+  - [Visão geral](#visão-geral)
+  - [Diferenciais do projeto](#diferenciais-do-projeto)
+  - [Stack de tecnologias](#stack-de-tecnologias)
+  - [Arquitetura](#arquitetura)
+    - [Estrutura do projeto](#estrutura-do-projeto)
+  - [Banco de dados (Persistência Poliglota)](#banco-de-dados-persistência-poliglota)
+    - [SGBDs Utilizados](#sgbds-utilizados)
+    - [Modelagem de Dados](#modelagem-de-dados)
+  - [Endpoints da API](#endpoints-da-api)
+    - [Infraestrutura & Autenticação](#infraestrutura-autenticação)
+    - [Catálogo de Produtos](#catálogo-de-produtos)
+    - [Checkout](#checkout)
+    - [Assistente de IA (Chatbot & RAG)](#assistente-de-ia-chatbot-rag)
+  - [Como executar](#como-executar)
+    - [Requisitos](#requisitos)
+    - [Passos](#passos)
+  - [Decisões de projeto](#decisões-de-projeto)
+    - [Arquitetura Hexagonal](#arquitetura-hexagonal)
+    - [Spec-First com OpenAPI](#spec-first-com-openapi)
+    - [Assistente de IA com RAG e PGVector](#assistente-de-ia-com-rag-e-pgvector)
+    - [Observabilidade de Nível de Produção](#observabilidade-de-nível-de-produção)
+    - [Roteamento com Traefik](#roteamento-com-traefik)
+    - [Integração com WhatsApp](#integração-com-whatsapp)
+  - [Performance e Resiliência](#performance-e-resiliência)
+    - [Escalonamento Horizontal (Load Balancing)](#escalonamento-horizontal-load-balancing)
+    - [Resultados do Teste de Estresse](#resultados-do-teste-de-estresse)
+    - [Análise de Gargalos (Profiling)](#análise-de-gargalos-profiling)
+  - [Licença](#licença)
+<!--toc:end-->
 
 E-commerce Fullstack (Catálogo de Produtos e Assistente de IA com RAG) com arquitetura hexagonal, persistência poliglota, roteamento inteligente e observabilidade distribuída.
 
@@ -54,15 +54,15 @@ O sistema atende a três frentes principais:
 
 Além dos requisitos mínimos, o projeto foi construído seguindo práticas adotadas em ambientes de produção corporativos:
 
-* **Persistência Poliglota + Busca Vetorial:** Uso de PostgreSQL 18 com **PGVector** (Autenticação/ACID + Embeddings para RAG), MongoDB (Catálogo/Flexibilidade de Schema) e Valkey/Redis (Cache e Histórico de visualizações).
-* **Chatbot de IA com RAG (Google Gemini):** Serviço dedicado em Go integrado ao SDK oficial da Google (`genai`) para geração de embeddings e respostas contextualizadas via Retrieval-Augmented Generation.
-* **Observabilidade Completa (LGTM + Pyroscope):** Rastreamento distribuído (Tempo), agregação de logs estruturados (Loki), coleta de métricas (Prometheus/Mimir) e profiling contínuo de CPU/Memória (Pyroscope) cobrindo tanto a API principal quanto o serviço de Chatbot.
-* **Arquitetura Hexagonal (Ports and Adapters):** Domínio puro e isolado de frameworks, bancos de dados, provedores de LLM e detalhes de HTTP.
-* **Spec-First com OpenAPI (`oapi-codegen`):** A API é gerada a partir do contrato `openapi.yaml`, garantindo *Strict Server* (tipagem forte e validação automática de requests/responses).
-* **Reverse Proxy com Traefik:** Roteamento inteligente e isolamento de rede com subdomínios locais (`api.localhost`, `chat.localhost`, `admin.localhost`, `front.localhost`, `telemetry.localhost`).
-* **Autenticação com PASETO v4:** Substituindo o JWT por um padrão mais seguro contra ataques de análise de tempo e confusão de algoritmos.
-* **Hash de senha com Argon2id:** Configurado com parâmetros acima das recomendações mínimas do OWASP.
-* **Infraestrutura 100% Containerizada:** Orquestração completa via Docker Compose.
+- **Persistência Poliglota + Busca Vetorial:** Uso de PostgreSQL 18 com **PGVector** (Autenticação/ACID + Embeddings para RAG), MongoDB (Catálogo/Flexibilidade de Schema) e Valkey/Redis (Cache e Histórico de visualizações).
+- **Chatbot de IA com RAG (Google Gemini):** Serviço dedicado em Go integrado ao SDK oficial da Google (`genai`) para geração de embeddings e respostas contextualizadas via Retrieval-Augmented Generation.
+- **Observabilidade Completa (LGTM + Pyroscope):** Rastreamento distribuído (Tempo), agregação de logs estruturados (Loki), coleta de métricas (Prometheus/Mimir) e profiling contínuo de CPU/Memória (Pyroscope) cobrindo tanto a API principal quanto o serviço de Chatbot.
+- **Arquitetura Hexagonal (Ports and Adapters):** Domínio puro e isolado de frameworks, bancos de dados, provedores de LLM e detalhes de HTTP.
+- **Spec-First com OpenAPI (`oapi-codegen`):** A API é gerada a partir do contrato `openapi.yaml`, garantindo *Strict Server* (tipagem forte e validação automática de requests/responses).
+- **Reverse Proxy com Traefik:** Roteamento inteligente e isolamento de rede com subdomínios locais (`api.localhost`, `chat.localhost`, `admin.localhost`, `front.localhost`, `telemetry.localhost`).
+- **Autenticação com PASETO v4:** Substituindo o JWT por um padrão mais seguro contra ataques de análise de tempo e confusão de algoritmos.
+- **Hash de senha com Argon2id:** Configurado com parâmetros acima das recomendações mínimas do OWASP.
+- **Infraestrutura 100% Containerizada:** Orquestração completa via Docker Compose.
 
 ---
 
@@ -183,16 +183,16 @@ A grande estrela deste projeto é a escolha cirúrgica do banco de dados para ca
 
 ### SGBDs Utilizados
 
-* **PostgreSQL 18 + PGVector:** Além de controlar **Autenticação e Usuários** com garantias ACID, utiliza a extensão **PGVector** para armazenar vetores de alta dimensão (*embeddings*), viabilizando buscas por similaridade semântica no pipeline de RAG sem a necessidade de manter um banco vetorial separado.
-* **MongoDB:** Utilizado para o **Catálogo de Produtos**. Seu modelo de documentos flexível permite que produtos tenham atributos dinâmicos (`Specs: map[string]any`), o que seria um pesadelo de normalização no SQL.
-* **Valkey (Redis):** Utilizado para o **Cache** de produtos consultados e para o histórico de **"Vistos Recentemente"**. Utiliza estruturas de dados em memória para entregar respostas em menos de 1 milissegundo.
+- **PostgreSQL 18 + PGVector:** Além de controlar **Autenticação e Usuários** com garantias ACID, utiliza a extensão **PGVector** para armazenar vetores de alta dimensão (*embeddings*), viabilizando buscas por similaridade semântica no pipeline de RAG sem a necessidade de manter um banco vetorial separado.
+- **MongoDB:** Utilizado para o **Catálogo de Produtos**. Seu modelo de documentos flexível permite que produtos tenham atributos dinâmicos (`Specs: map[string]any`), o que seria um pesadelo de normalização no SQL.
+- **Valkey (Redis):** Utilizado para o **Cache** de produtos consultados e para o histórico de **"Vistos Recentemente"**. Utiliza estruturas de dados em memória para entregar respostas em menos de 1 milissegundo.
 
 ### Modelagem de Dados
 
-* **Users (Postgres):** Tabela relacional contendo `id`, `email`, `password_hash`, etc.
-* **Embeddings / Knowledge Base (Postgres + PGVector):** Tabela vetorial armazenando os trechos de contexto/produtos e suas representações vetoriais (`vector`), consultadas via distância de cosseno/L2.
-* **Products (MongoDB):** Documento contendo `_id` (ObjectID hex de 24 caracteres), `name`, `price`, `stock` e `specs` (objeto flexível).
-* **Recent Views (Valkey):** Utilização da estrutura de dados **List** (`LPUSH`, `LTRIM`), mantendo apenas os últimos 5 produtos vistos por cada visitante (identificado via Header `X-Client-ID`).
+- **Users (Postgres):** Tabela relacional contendo `id`, `email`, `password_hash`, etc.
+- **Embeddings / Knowledge Base (Postgres + PGVector):** Tabela vetorial armazenando os trechos de contexto/produtos e suas representações vetoriais (`vector`), consultadas via distância de cosseno/L2.
+- **Products (MongoDB):** Documento contendo `_id` (ObjectID hex de 24 caracteres), `name`, `price`, `stock` e `specs` (objeto flexível).
+- **Recent Views (Valkey):** Utilização da estrutura de dados **List** (`LPUSH`, `LTRIM`), mantendo apenas os últimos 5 produtos vistos por cada visitante (identificado via Header `X-Client-ID`).
 
 ---
 
@@ -241,9 +241,9 @@ Servido pelo microsserviço `bazaar-chat` ([http://chat.localhost](http://chat.l
 
 ### Requisitos
 
-* Docker e Docker Compose
-* Chave de API do Google Gemini (`GEMINI_API_KEY`) configurada no `.env`
-* Make (Opcional)
+- Docker e Docker Compose
+- Chave de API do Google Gemini (`GEMINI_API_KEY`) configurada no `.env`
+- Make (Opcional)
 
 ### Passos
 
@@ -267,12 +267,12 @@ docker compose up -d --build
 **3. Acesse as aplicações via Traefik:**
 O Traefik gerencia as rotas baseadas em subdomínios locais (padrão na maioria dos SOs modernos).
 
-* **Vitrine (Cliente):** `[http://front.localhost](http://front.localhost)`
-* **Painel Admin (Streamlit):** `[http://admin.localhost](http://admin.localhost)`
-* **API Core (Swagger):** `[http://api.localhost/swagger/index.html](http://api.localhost/swagger/index.html)`
-* **Chatbot IA (Swagger):** `[http://chat.localhost/swagger/index.html](http://chat.localhost/swagger/index.html)`
-* **Observabilidade (Grafana LGTM):** `[http://telemetry.localhost](http://telemetry.localhost)`
-* **Dashboard Traefik:** `http://localhost:8080`
+- **Vitrine (Cliente):** `[http://front.localhost](http://front.localhost)`
+- **Painel Admin (Streamlit):** `[http://admin.localhost](http://admin.localhost)`
+- **API Core (Swagger):** `[http://api.localhost/swagger/index.html](http://api.localhost/swagger/index.html)`
+- **Chatbot IA (Swagger):** `[http://chat.localhost/swagger/index.html](http://chat.localhost/swagger/index.html)`
+- **Observabilidade (Grafana LGTM):** `[http://telemetry.localhost](http://telemetry.localhost)`
+- **Dashboard Traefik:** `http://localhost:8080`
 
 ---
 
@@ -298,10 +298,10 @@ Para evitar alucinações do modelo de linguagem e garantir respostas alinhadas 
 
 Em vez de apenas "prints no terminal", tanto a API principal quanto o serviço de Chatbot foram instrumentados com **OpenTelemetry**.
 
-* O middleware `otelchi` captura traces das requisições HTTP.
-* O `otelslog` envia logs estruturados em JSON para o Loki com o `trace_id` atrelado.
-* Métricas e traces são exportados via OTLP (gRPC/HTTP) para a stack LGTM, permitindo acompanhar latência de inferência do Gemini, buscas no PGVector e throughput das APIs.
-* O **Pyroscope** roda em background capturando perfis de CPU e alocação de memória, permitindo identificar gargalos exatos em tempo real.
+- O middleware `otelchi` captura traces das requisições HTTP.
+- O `otelslog` envia logs estruturados em JSON para o Loki com o `trace_id` atrelado.
+- Métricas e traces são exportados via OTLP (gRPC/HTTP) para a stack LGTM, permitindo acompanhar latência de inferência do Gemini, buscas no PGVector e throughput das APIs.
+- O **Pyroscope** roda em background capturando perfis de CPU e alocação de memória, permitindo identificar gargalos exatos em tempo real.
 
 ### Roteamento com Traefik
 
@@ -325,17 +325,17 @@ A API foi escalada para **3 instâncias** simultâneas (`docker compose up -d --
 
 Utilizando a ferramenta `autocannon` com **10.000 conexões simultâneas**, o sistema apresentou os seguintes resultados:
 
-* **Vazão (Throughput):** Média de **~43.000 requisições por segundo**.
-* **Confiabilidade:** **347.693 requisições** processadas com **100% de sucesso** (Status 200), sem nenhuma queda de conexão ou erro 500.
-* **Latência (p99):** 1.72s.
+- **Vazão (Throughput):** Média de **~43.000 requisições por segundo**.
+- **Confiabilidade:** **347.693 requisições** processadas com **100% de sucesso** (Status 200), sem nenhuma queda de conexão ou erro 500.
+- **Latência (p99):** 1.72s.
 
 ### Análise de Gargalos (Profiling)
 
 Os testes foram executados em um ambiente de desenvolvimento local (todas as instâncias e o gerador de carga na mesma máquina física). Através da stack de Observabilidade, foi possível identificar os seguintes gargalos:
 
-* **MongoDB (233% de CPU):** A rota testada utiliza *Regex Scan* (Case-Insensitive) no catálogo. Como o teste exige leitura extrema, o banco varre a coleção inteira. Em produção, um índice de texto (`Text Index`) resolveria esse gargalo.
-* **OpenTelemetry Stack (1.3GB RAM):** A stack LGTM processou a telemetria de 3 instâncias da API simultaneamente sob carga máxima, provando a robustez da coleta de traces e métricas.
-* **Go API (Estável):** Mesmo sob estresse, as instâncias da API mantiveram a estabilidade de memória (sem Goroutine Leaks) e uso de CPU focado no processamento concorrente.
+- **MongoDB (233% de CPU):** A rota testada utiliza *Regex Scan* (Case-Insensitive) no catálogo. Como o teste exige leitura extrema, o banco varre a coleção inteira. Em produção, um índice de texto (`Text Index`) resolveria esse gargalo.
+- **OpenTelemetry Stack (1.3GB RAM):** A stack LGTM processou a telemetria de 3 instâncias da API simultaneamente sob carga máxima, provando a robustez da coleta de traces e métricas.
+- **Go API (Estável):** Mesmo sob estresse, as instâncias da API mantiveram a estabilidade de memória (sem Goroutine Leaks) e uso de CPU focado no processamento concorrente.
 
 ---
 
