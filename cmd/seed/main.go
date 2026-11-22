@@ -79,7 +79,6 @@ func main() {
 	if apiKey == "" {
 		fmt.Println("api key empty bro check yo .env")
 	}
-	fmt.Println(apiKey)
 	client, err := genai.NewClient(ctx, &genai.ClientConfig{
 		APIKey: apiKey,
 	})
@@ -87,7 +86,7 @@ func main() {
 		log.Fatalf("Error while creating Gemini client: %v", err)
 	}
 
-	dbURL := os.Getenv("DATABASE_URL")
+	dbURL := os.Getenv("DATABASE_LOCAL_URL")
 	if dbURL == "" {
 		dbURL = "postgres://admin:root@localhost:5432/bazaargo?sslmode=disable"
 	}
