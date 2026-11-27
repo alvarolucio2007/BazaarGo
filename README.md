@@ -1,37 +1,39 @@
 # BazaarGo
 
 <!--toc:start-->
+
 - [BazaarGo](#bazaargo)
-  - [Visão geral](#visão-geral)
-  - [Diferenciais do projeto](#diferenciais-do-projeto)
-  - [Stack de tecnologias](#stack-de-tecnologias)
-  - [Arquitetura](#arquitetura)
-    - [Estrutura do projeto](#estrutura-do-projeto)
-  - [Banco de dados (Persistência Poliglota)](#banco-de-dados-persistência-poliglota)
-    - [SGBDs Utilizados](#sgbds-utilizados)
-    - [Modelagem de Dados](#modelagem-de-dados)
-  - [Endpoints da API](#endpoints-da-api)
-    - [Infraestrutura & Autenticação](#infraestrutura-autenticação)
-    - [Catálogo de Produtos](#catálogo-de-produtos)
-    - [Checkout](#checkout)
-    - [Assistente de IA (Chatbot & RAG)](#assistente-de-ia-chatbot-rag)
-  - [Como executar](#como-executar)
-    - [Requisitos](#requisitos)
-    - [Passos](#passos)
-  - [Decisões de projeto](#decisões-de-projeto)
-    - [Arquitetura Hexagonal](#arquitetura-hexagonal)
-    - [Spec-First com OpenAPI](#spec-first-com-openapi)
-    - [Assistente de IA com RAG e PGVector](#assistente-de-ia-com-rag-e-pgvector)
-    - [Observabilidade de Nível de Produção](#observabilidade-de-nível-de-produção)
-    - [Roteamento com Traefik](#roteamento-com-traefik)
-    - [Integração com WhatsApp](#integração-com-whatsapp)
-    - [Cache Semântico (Otimização de Custos e Latência)](#cache-semântico-otimização-de-custos-e-latência)
-  - [Decisões de Arquitetura (ADRs)](#decisões-de-arquitetura-adrs)
-  - [Performance e Resiliência](#performance-e-resiliência)
-    - [Escalonamento Horizontal (Load Balancing)](#escalonamento-horizontal-load-balancing)
-    - [Resultados do Teste de Estresse](#resultados-do-teste-de-estresse)
-    - [Análise de Gargalos (Profiling)](#análise-de-gargalos-profiling)
-  - [Licença](#licença)
+    - [Visão geral](#visão-geral)
+    - [Diferenciais do projeto](#diferenciais-do-projeto)
+    - [Stack de tecnologias](#stack-de-tecnologias)
+    - [Arquitetura](#arquitetura)
+        - [Estrutura do projeto](#estrutura-do-projeto)
+    - [Banco de dados (Persistência Poliglota)](#banco-de-dados-persistência-poliglota)
+        - [SGBDs Utilizados](#sgbds-utilizados)
+        - [Modelagem de Dados](#modelagem-de-dados)
+    - [Endpoints da API](#endpoints-da-api)
+        - [Infraestrutura & Autenticação](#infraestrutura-autenticação)
+        - [Catálogo de Produtos](#catálogo-de-produtos)
+        - [Checkout](#checkout)
+        - [Assistente de IA (Chatbot & RAG)](#assistente-de-ia-chatbot-rag)
+    - [Como executar](#como-executar)
+        - [Requisitos](#requisitos)
+        - [Passos](#passos)
+    - [Decisões de projeto](#decisões-de-projeto)
+        - [Arquitetura Hexagonal](#arquitetura-hexagonal)
+        - [Spec-First com OpenAPI](#spec-first-com-openapi)
+        - [Assistente de IA com RAG e PGVector](#assistente-de-ia-com-rag-e-pgvector)
+        - [Observabilidade de Nível de Produção](#observabilidade-de-nível-de-produção)
+        - [Roteamento com Traefik](#roteamento-com-traefik)
+        - [Integração com WhatsApp](#integração-com-whatsapp)
+        - [Cache Semântico (Otimização de Custos e Latência)](#cache-semântico-otimização-de-custos-e-latência)
+    - [Decisões de Arquitetura (ADRs)](#decisões-de-arquitetura-adrs)
+    - [Performance e Resiliência](#performance-e-resiliência)
+        - [Escalonamento Horizontal (Load Balancing)](#escalonamento-horizontal-load-balancing)
+        - [Resultados do Teste de Estresse](#resultados-do-teste-de-estresse)
+        - [Análise de Gargalos (Profiling)](#análise-de-gargalos-profiling)
+    - [Licença](#licença)
+
 <!--toc:end-->
 
 E-commerce Fullstack (Catálogo de Produtos e Assistente de IA com RAG) com arquitetura hexagonal, persistência poliglota, roteamento inteligente e observabilidade distribuída.
@@ -98,7 +100,7 @@ Além dos requisitos mínimos, o projeto foi construído seguindo práticas adot
 
 ## Arquitetura
 
-O projeto adota uma arquitetura de microsserviços desacoplados, orquestrada pelo Traefik. Os serviços backend (**API Core** e **Chatbot RAG**) seguem os princípios da **Arquitetura Hexagonal**, isolando regras de negócio, bancos de dados e a integração com a API do Google Gemini.
+O projeto adota uma arquitetura modular monolítica, orquestrada pelo Traefik. Os serviços backend (**API Core** e **Chatbot RAG**) seguem os princípios da **Arquitetura Hexagonal**, isolando regras de negócio, bancos de dados e a integração com a API do Google Gemini.
 
 ```mermaid
 flowchart TD
