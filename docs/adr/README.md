@@ -17,7 +17,3 @@ An Architecture Decision Record is a short text file that captures an important 
 | [005](./005-observability-lgtm.md)                  | OpenTelemetry and LGTM Stack for Observability  | Accepted |
 | [006](./006-modular-monolith-over-microservices.md) | Use Modular Monolith over Microservices for RAG | Accepted |
 | [007](./007-semantic-cache.md)                      | Semantic Cache for RAG (LLM Optimization)       | Accepted |
-
----
-
-_Note: The file names above assume the naming convention `XXX-title.md`. Make sure your ADR files match these names._
