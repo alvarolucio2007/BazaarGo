@@ -25,6 +25,8 @@
     - [Observabilidade de Nível de Produção](#observabilidade-de-nível-de-produção)
     - [Roteamento com Traefik](#roteamento-com-traefik)
     - [Integração com WhatsApp](#integração-com-whatsapp)
+    - [Cache Semântico (Otimização de Custos e Latência)](#cache-semântico-otimização-de-custos-e-latência)
+  - [Decisões de Arquitetura (ADRs)](#decisões-de-arquitetura-adrs)
   - [Performance e Resiliência](#performance-e-resiliência)
     - [Escalonamento Horizontal (Load Balancing)](#escalonamento-horizontal-load-balancing)
     - [Resultados do Teste de Estresse](#resultados-do-teste-de-estresse)
@@ -59,7 +61,7 @@ Além dos requisitos mínimos, o projeto foi construído seguindo práticas adot
 - **Cache Semântico para LLM (Otimização de Custos e Latência):** Implementação de uma camada de cache inteligente usando PGVector. Perguntas com significado similar são respondidas em milissegundos sem acionar a API do Google Gemini, reduzindo custos e protegendo o sistema contra indisponibilidades (erros 503) do provedor de IA.
 - **Observabilidade Completa (LGTM + Pyroscope):** Rastreamento distribuído (Tempo), agregação de logs estruturados (Loki), coleta de métricas (Prometheus/Mimir) e profiling contínuo de CPU/Memória (Pyroscope) cobrindo tanto a API principal quanto o serviço de Chatbot.
 - **Arquitetura Hexagonal (Ports and Adapters):** Domínio puro e isolado de frameworks, bancos de dados, provedores de LLM e detalhes de HTTP.
-- **Spec-First com OpenAPI (`oapi-codegen`):** A API é gerada a partir do contrato `openapi.yaml`, garantindo *Strict Server* (tipagem forte e validação automática de requests/responses).
+- **Spec-First com OpenAPI (`oapi-codegen`):** A API é gerada a partir do contrato `openapi.yaml`, garantindo _Strict Server_ (tipagem forte e validação automática de requests/responses).
 - **Reverse Proxy com Traefik:** Roteamento inteligente e isolamento de rede com subdomínios locais (`api.localhost`, `chat.localhost`, `admin.localhost`, `front.localhost`, `telemetry.localhost`).
 - **Autenticação com PASETO v4:** Substituindo o JWT por um padrão mais seguro contra ataques de análise de tempo e confusão de algoritmos.
 - **Hash de senha com Argon2id:** Configurado com parâmetros acima das recomendações mínimas do OWASP.
@@ -69,28 +71,28 @@ Além dos requisitos mínimos, o projeto foi construído seguindo práticas adot
 
 ## Stack de tecnologias
 
-| Camada | Tecnologia |
-| --- | --- |
-| **Backend & IA** | |
-| Linguagem | Go (Golang) |
-| Roteador HTTP | chi |
-| Design de API | OpenAPI 3.0 (Spec-First + Strict Server) |
-| IA Generativa & Embeddings | Google Gemini (`google.golang.org/genai`) |
-| Pipeline RAG | Busca Vetorial via PGVector + Prompt Augmentation |
-| Autenticação | PASETO v4 |
-| Hash de senha | Argon2id |
-| **Bancos de Dados** | |
-| Relacional & Vetorial | PostgreSQL 18 + Extensão **PGVector** |
-| Documentos (Produtos) | MongoDB 9 |
-| Cache/Listas (Histórico) | Valkey 9 (Redis) |
-| **Observabilidade** | |
-| Coleta e Visualização | Grafana, Tempo, Loki, Prometheus, Pyroscope |
-| Instrumentação | OpenTelemetry (SDK Go + OTLP gRPC/HTTP) |
-| **Frontend & UI** | |
-| Vitrine e Painel Admin | Python + Streamlit |
-| **Infraestrutura** | |
-| Proxy Reverso | Traefik v3 |
-| Containerização | Docker e Docker Compose |
+| Camada                     | Tecnologia                                        |
+| -------------------------- | ------------------------------------------------- |
+| **Backend & IA**           |                                                   |
+| Linguagem                  | Go (Golang)                                       |
+| Roteador HTTP              | chi                                               |
+| Design de API              | OpenAPI 3.0 (Spec-First + Strict Server)          |
+| IA Generativa & Embeddings | Google Gemini (`google.golang.org/genai`)         |
+| Pipeline RAG               | Busca Vetorial via PGVector + Prompt Augmentation |
+| Autenticação               | PASETO v4                                         |
+| Hash de senha              | Argon2id                                          |
+| **Bancos de Dados**        |                                                   |
+| Relacional & Vetorial      | PostgreSQL 18 + Extensão **PGVector**             |
+| Documentos (Produtos)      | MongoDB 9                                         |
+| Cache/Listas (Histórico)   | Valkey 9 (Redis)                                  |
+| **Observabilidade**        |                                                   |
+| Coleta e Visualização      | Grafana, Tempo, Loki, Prometheus, Pyroscope       |
+| Instrumentação             | OpenTelemetry (SDK Go + OTLP gRPC/HTTP)           |
+| **Frontend & UI**          |                                                   |
+| Vitrine e Painel Admin     | Python + Streamlit                                |
+| **Infraestrutura**         |                                                   |
+| Proxy Reverso              | Traefik v3                                        |
+| Containerização            | Docker e Docker Compose                           |
 
 ---
 
@@ -107,11 +109,11 @@ flowchart TD
     %% Proxy e Roteamento
     User <-->|http://front.localhost| Traefik[Traefik Reverse Proxy]
     Admin <-->|http://admin.localhost| Traefik
-    
+
     %% Frontends
     Traefik <--> Vitrine[Vitrine Streamlit]
     Traefik <--> AdminPanel[Painel Admin Streamlit]
-    
+
     %% Backends
     Traefik <-->|http://api.localhost| API[Go API - Core Hexagonal]
     Traefik <-->|http://chat.localhost| ChatSvc[Go Chatbot - RAG Service]
@@ -140,7 +142,7 @@ flowchart TD
     classDef database fill:#bfb,stroke:#333,stroke-width:2px,color:#000;
     classDef obs fill:#ffb,stroke:#333,stroke-width:2px,color:#000;
     classDef external fill:#e1d5e7,stroke:#333,stroke-width:2px,color:#000;
-    
+
     class Traefik proxy;
     class Vitrine,AdminPanel frontend;
     class API,ChatSvc backend;
@@ -185,7 +187,7 @@ A grande estrela deste projeto é a escolha cirúrgica do banco de dados para ca
 
 ### SGBDs Utilizados
 
-- **PostgreSQL 18 + PGVector:** Além de controlar **Autenticação e Usuários** com garantias ACID, utiliza a extensão **PGVector** para armazenar vetores de alta dimensão (*embeddings*), viabilizando buscas por similaridade semântica no pipeline de RAG sem a necessidade de manter um banco vetorial separado.
+- **PostgreSQL 18 + PGVector:** Além de controlar **Autenticação e Usuários** com garantias ACID, utiliza a extensão **PGVector** para armazenar vetores de alta dimensão (_embeddings_), viabilizando buscas por similaridade semântica no pipeline de RAG sem a necessidade de manter um banco vetorial separado.
 - **MongoDB:** Utilizado para o **Catálogo de Produtos**. Seu modelo de documentos flexível permite que produtos tenham atributos dinâmicos (`Specs: map[string]any`), o que seria um pesadelo de normalização no SQL.
 - **Valkey (Redis):** Utilizado para o **Cache** de produtos consultados e para o histórico de **"Vistos Recentemente"**. Utiliza estruturas de dados em memória para entregar respostas em menos de 1 milissegundo.
 
@@ -204,38 +206,38 @@ A documentação completa e interativa está disponível via Swagger UI em `[htt
 
 ### Infraestrutura & Autenticação
 
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| GET | `/health` | Health check concorrente (Postgres, Mongo, Valkey) |
-| POST | `/auth/register` | Criação de um novo Administrador |
-| POST | `/auth/token` | Login e geração do token PASETO |
+| Método | Rota             | Descrição                                          |
+| ------ | ---------------- | -------------------------------------------------- |
+| GET    | `/health`        | Health check concorrente (Postgres, Mongo, Valkey) |
+| POST   | `/auth/register` | Criação de um novo Administrador                   |
+| POST   | `/auth/token`    | Login e geração do token PASETO                    |
 
 ### Catálogo de Produtos
 
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| GET | `/products` | Lista todos os produtos do catálogo |
-| POST | `/products` | Cadastra um novo produto (Requer Bearer Token) |
-| GET | `/products/{id}` | Detalhes do produto (Requer Header `X-Client-ID`) |
-| PUT | `/products/{id}` | Atualiza um produto (Requer Bearer Token e ID Mongo válido) |
-| DELETE | `/products/{id}` | Deleta um produto (Requer Bearer Token) |
-| GET | `/products/search/{name}` | Busca produtos por nome (Case-insensitive) |
-| GET | `/products/recent` | Retorna os produtos vistos recentemente (Requer Header `X-Client-ID`) |
+| Método | Rota                      | Descrição                                                             |
+| ------ | ------------------------- | --------------------------------------------------------------------- |
+| GET    | `/products`               | Lista todos os produtos do catálogo                                   |
+| POST   | `/products`               | Cadastra um novo produto (Requer Bearer Token)                        |
+| GET    | `/products/{id}`          | Detalhes do produto (Requer Header `X-Client-ID`)                     |
+| PUT    | `/products/{id}`          | Atualiza um produto (Requer Bearer Token e ID Mongo válido)           |
+| DELETE | `/products/{id}`          | Deleta um produto (Requer Bearer Token)                               |
+| GET    | `/products/search/{name}` | Busca produtos por nome (Case-insensitive)                            |
+| GET    | `/products/recent`        | Retorna os produtos vistos recentemente (Requer Header `X-Client-ID`) |
 
 ### Checkout
 
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| POST | `/checkout` | Recebe o carrinho e gera a URL formatada do WhatsApp |
+| Método | Rota        | Descrição                                            |
+| ------ | ----------- | ---------------------------------------------------- |
+| POST   | `/checkout` | Recebe o carrinho e gera a URL formatada do WhatsApp |
 
 ### Assistente de IA (Chatbot & RAG)
 
 Servido pelo microsserviço `bazaar-chat` ([http://chat.localhost](http://chat.localhost)):
 
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| GET | `/health` | Health check do serviço de Chatbot |
-| POST | `/chat` | Envia uma pergunta do usuário, busca contexto relevante no PGVector e gera resposta via Google Gemini |
+| Método | Rota      | Descrição                                                                                             |
+| ------ | --------- | ----------------------------------------------------------------------------------------------------- |
+| GET    | `/health` | Health check do serviço de Chatbot                                                                    |
+| POST   | `/chat`   | Envia uma pergunta do usuário, busca contexto relevante no PGVector e gera resposta via Google Gemini |
 
 ---
 
@@ -310,7 +312,7 @@ Em vez de escrever handlers na mão, o arquivo `openapi.yaml` é a única fonte 
 
 Para evitar alucinações do modelo de linguagem e garantir respostas alinhadas ao catálogo real do BazaarGo, o microsserviço de chat implementa **Retrieval-Augmented Generation (RAG)**:
 
-1. A pergunta do cliente é convertida em vetor (*embedding*) usando o SDK oficial do **Google Gemini** (`google.golang.org/genai`).
+1. A pergunta do cliente é convertida em vetor (_embedding_) usando o SDK oficial do **Google Gemini** (`google.golang.org/genai`).
 2. O adaptador `pgvector` realiza uma busca por similaridade semântica no PostgreSQL 18 para recuperar os documentos/produtos mais relevantes.
 3. Os trechos recuperados são injetados como contexto no prompt enviado ao Gemini, gerando uma resposta precisa e fundamentada.
 
@@ -336,15 +338,34 @@ Para manter o escopo enxuto e sem dependência de gateways de pagamento complexo
 Em sistemas RAG, a latência e o custo estão diretamente atrelados à chamada do Large Language Model (LLM). Para mitigar isso, não utilizamos um cache tradicional (baseado em strings exatas), mas sim um **Cache Semântico** construído sobre o próprio PGVector.
 
 **Como funciona:**
-1. Quando uma pergunta chega, seu *embedding* é gerado.
+
+1. Quando uma pergunta chega, seu _embedding_ é gerado.
 2. Antes de buscar o contexto ou chamar o LLM, o sistema realiza uma busca por similaridade de cosseno na tabela `semantic_cache`.
 3. Se a pergunta for **≥ 95% similar** a uma pergunta feita anteriormente, a resposta salva é retornada instantaneamente.
-4. Se não houver *cache hit*, o fluxo normal do RAG é executado e a nova pergunta/resposta é salva na tabela para consultas futuras.
+4. Se não houver _cache hit_, o fluxo normal do RAG é executado e a nova pergunta/resposta é salva na tabela para consultas futuras.
 
 **Impacto Mensurado (via OpenTelemetry):**
-*   **Redução de Latência:** O tempo de resposta caiu de **1.55s** (Cache Miss) para **~357ms** (Cache Hit), um ganho de performance de **~4.5x**. O tempo de processamento do LLM (1.22s) é totalmente eliminado.
-*   **Economia de Custos:** Redução drástica no consumo de tokens da API do Google Gemini.
-*   **Resiliência:** Perguntas repetidas continuam sendo respondidas mesmo se a API do Gemini estiver fora do ar.
+
+- **Redução de Latência:** O tempo de resposta caiu de **1.55s** (Cache Miss) para **~357ms** (Cache Hit), um ganho de performance de **~4.5x**. O tempo de processamento do LLM (1.22s) é totalmente eliminado.
+- **Economia de Custos:** Redução drástica no consumo de tokens da API do Google Gemini.
+- **Resiliência:** Perguntas repetidas continuam sendo respondidas mesmo se a API do Gemini estiver fora do ar.
+
+---
+
+## Decisões de Arquitetura (ADRs)
+
+Para garantir a manutenibilidade a longo prazo e a transparência das escolhas técnicas, as decisões arquiteturais mais críticas deste projeto estão documentadas no formato **ADR (Architecture Decision Records)**.
+
+Cada documento detalha o contexto da época, as alternativas avaliadas, a decisão tomada e as suas consequências (trade-offs). O índice completo com o histórico de decisões está disponível em [`docs/adr/`](./docs/adr/README.md).
+
+- [001 - Hexagonal Architecture and Modular Monolith](./docs/adr/001-hexagonal-architecture.md)
+- [002 - Contract-First API Design using OpenAPI](./docs/adr/002-openapi-spec-first.md)
+- [003 - Polyglot Persistence](./docs/adr/003-polyglot-persistence.md)
+- [004 - PASETO v4 instead of JWT](./docs/adr/004-paseto-over-jwt.md)
+- [005 - OpenTelemetry and LGTM Stack](./docs/adr/005-observability-lgtm.md)
+- [006 - Modular Monolith over Microservices](./docs/adr/006-modular-monolith-over-microservices.md)
+- [007 - Semantic Cache for RAG](./docs/adr/007-semantic-cache.md)
+
 ---
 
 ## Performance e Resiliência
@@ -367,7 +388,7 @@ Utilizando a ferramenta `autocannon` com **10.000 conexões simultâneas**, o si
 
 Os testes foram executados em um ambiente de desenvolvimento local (todas as instâncias e o gerador de carga na mesma máquina física). Através da stack de Observabilidade, foi possível identificar os seguintes gargalos:
 
-- **MongoDB (233% de CPU):** A rota testada utiliza *Regex Scan* (Case-Insensitive) no catálogo. Como o teste exige leitura extrema, o banco varre a coleção inteira. Em produção, um índice de texto (`Text Index`) resolveria esse gargalo.
+- **MongoDB (233% de CPU):** A rota testada utiliza _Regex Scan_ (Case-Insensitive) no catálogo. Como o teste exige leitura extrema, o banco varre a coleção inteira. Em produção, um índice de texto (`Text Index`) resolveria esse gargalo.
 - **OpenTelemetry Stack (1.3GB RAM):** A stack LGTM processou a telemetria de 3 instâncias da API simultaneamente sob carga máxima, provando a robustez da coleta de traces e métricas.
 - **Go API (Estável):** Mesmo sob estresse, as instâncias da API mantiveram a estabilidade de memória (sem Goroutine Leaks) e uso de CPU focado no processamento concorrente.
 
