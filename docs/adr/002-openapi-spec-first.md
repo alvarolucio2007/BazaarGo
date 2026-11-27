@@ -10,7 +10,7 @@ In previous projects, defining HTTP handlers first and generating documentation 
 
 ## Decision
 
-We will use **Spec-First development** with OpenAPI 3.0. The `openapi.yaml` file is the source of truth. We use `oapi-codegen` to generate the Go types, interfaces, and the Strict Server boilerplate.
+We will use **Spec-First development** with OpenAPI 3.0. The `openapi.yaml` and `chatbot.yaml` files are the sources of truth. We use `oapi-codegen` to generate the Go types, interfaces, and the Strict Server boilerplate.
 
 ## Consequences
 

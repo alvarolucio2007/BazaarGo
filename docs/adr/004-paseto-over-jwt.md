@@ -14,5 +14,5 @@ We will use **PASETO (Platform-Agnostic Security Tokens) v4**, specifically the 
 
 ## Consequences
 
-- **Positive:** Security by default. PASETO eliminates algorithm negotiation, forcing the use of secure cryptographic primitives (XChaCha20-Poly1305).
+- **Positive:** Security by default. PASETO eliminates algorithm negotiation, forcing the use of secure cryptographic primitives (XChaCha20 + BLAKE2b).
 - **Negative:** Smaller ecosystem compared to JWT. Fewer ready-made tools and libraries for debugging.
